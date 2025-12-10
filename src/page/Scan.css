@@ -191,32 +191,40 @@ button.close-button:hover {
 }
 
 @media screen and (max-width: 480px) {
-    h1 {
-        font-size: 1.8rem;
-        letter-spacing: 2px;
-        margin-bottom: 20px;
-    }
-
     .container {
-        padding: 20px;
-        border-radius: 15px;
+        width: 100%;
+        /* Full width */
+        border: none;
+        /* Remove border for cleaner mobile look */
+        border-radius: 0;
+        backdrop-filter: none;
+        /* Improve performance on low-end mobile */
+        background-color: transparent;
+        /* Seamless look */
+        box-shadow: none;
+        padding: 10px;
     }
 
-    label {
-        font-size: 1rem;
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        /* Reduce glow for readability */
     }
 
-    input {
-        margin: 5px 0 15px;
-    }
-
+    input,
     button {
-        padding: 12px;
-        margin: 10px 0;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        /* Ensure padding doesn't overflow width */
+        font-size: 16px;
+        /* Prevent IOS zoom */
     }
 
     .modal-content {
-        width: 95%;
-        padding: 20px;
+        width: 90%;
+        max-height: 80vh;
+        /* Prevent modal being too tall */
     }
 }
