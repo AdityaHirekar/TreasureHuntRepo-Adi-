@@ -193,38 +193,35 @@ button.close-button:hover {
 @media screen and (max-width: 480px) {
     .container {
         width: 100%;
-        /* Full width */
-        border: none;
-        /* Remove border for cleaner mobile look */
-        border-radius: 0;
-        backdrop-filter: none;
-        /* Improve performance on low-end mobile */
-        background-color: transparent;
-        /* Seamless look */
-        box-shadow: none;
-        padding: 10px;
+        /* Adjust width for padding */
+        border-radius: 15px;
+        /* Keep rounded corners */
+        backdrop-filter: blur(10px);
+        /* Reduce blur but keep it */
+        background-color: rgba(0, 0, 0, 0.6);
+        /* Darker background for readability */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     }
 
     h1 {
         font-size: 2rem;
-        margin-bottom: 15px;
-        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        /* Reduce glow for readability */
+        margin-bottom: 20px;
     }
 
     input,
     button {
-        max-width: 100%;
         width: 100%;
-        box-sizing: border-box;
-        /* Ensure padding doesn't overflow width */
+        max-width: 100%;
         font-size: 16px;
-        /* Prevent IOS zoom */
+        /* Prevent iOS zoom */
+        margin: 8px 0;
     }
 
     .modal-content {
-        width: 90%;
-        max-height: 80vh;
-        /* Prevent modal being too tall */
+        width: 95%;
+        max-height: 85vh;
+        padding: 20px;
     }
 }
