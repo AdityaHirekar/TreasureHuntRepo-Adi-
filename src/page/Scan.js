@@ -4,7 +4,7 @@ import { API_BASE_URL } from "../config";
 import "./Scan.css"; // Import the CSS file
 
 const Scan = () => {
-	const [scannedData, setScannedData] = useState("LOC01");
+	const [scannedData, setScannedData] = useState(null);
 	const [teamId, setTeamId] = useState(localStorage.getItem("teamId") || "");
 	const [isScannerOpen, setIsScannerOpen] = useState(false);
 	const [message, setMessage] = useState("");
@@ -72,7 +72,7 @@ const Scan = () => {
 		e.preventDefault();
 		setMessage("Processing...");
 
-		if (scannedData === "No result" || !teamId) {
+		if (!scannedData || !teamId) {
 			alert("Please provide both scanned data and Team ID.");
 			return;
 		}
@@ -150,7 +150,7 @@ const Scan = () => {
 			<h1 className="page-title">Track Run - Scan</h1>
 			<div className="container">
 				<form onSubmit={handleSendData}>
-					{scannedData !== "No result" ? (
+					{scannedData ? (
 						<div className="success-message">
 							Scanned: {scannedData} <br />
 							<button type="button" onClick={openScanner} style={{ fontSize: '0.8rem', marginTop: '5px' }}>Rescan</button>

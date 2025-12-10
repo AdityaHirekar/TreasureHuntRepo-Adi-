@@ -154,7 +154,6 @@ app.post("/scan", async (req, res) => {
 
 		if (targetLoc && targetLoc.latitude && targetLoc.longitude) {
 			const distance = getDistanceFromLatLonInM(lat, lng, targetLoc.latitude, targetLoc.longitude);
-			console.log(`GPS Check: Team at [${lat}, ${lng}], Target [${targetLoc.latitude}, ${targetLoc.longitude}], Dist: ${distance}m`);
 
 			const MAX_DISTANCE = 50; // Meters
 			if (distance > MAX_DISTANCE) {
@@ -259,7 +258,7 @@ app.get("/admin/scans", async (req, res) => {
 
 app.post("/admin/disqualify", async (req, res) => {
 	const { teamId, status } = req.body;
-	console.log(`[Admin] Disqualify Request for ${teamId}, status=${status}`);
+
 
 	// If status is provided, use it. Otherwise default to true (disqualify).
 	const newStatus = status !== undefined ? status : true;
