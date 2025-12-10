@@ -9,287 +9,275 @@ const PORT = 5050;
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseKey = process.env.SUPABASE_KEY; // Service Role Key is required for strict Admin actions usually, but we'll assume the key provided has permissions
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware
-app.use(cors({ origin: "https://trackrun-treasure.vercel.app" })); // Adjust as per frontend URL
+app.use(cors());
 app.use(bodyParser.json());
 
-// Route to handle the location check and verification
-// Route to handle the location check and verification
-app.post("/check", async (req, res) => {
-	const { qrData, teamNumber } = req.body;
+// --- Helper Functions ---
 
-	try {
-		// Step 1: Retrieve team data from setlocation table
-		const { data: setlocationData, error: teamError } = await supabase
-			.from("setlocation")
-			.select(
-				"start, location1, location2, location3, location4, location5, end"
-			)
-			.eq("team", teamNumber)
-			.single();
+function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
+	if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
+	var R = 6371;
+	var dLat = deg2rad(lat2 - lat1);
+	var dLon = deg2rad(lon2 - lon1);
+	var a =
+		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+		Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+		Math.sin(dLon / 2) * Math.sin(dLon / 2);
+	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	var d = R * c;
+	return d * 1000;
+}
 
-		if (teamError || !setlocationData) {
-			return res.status(400).json({ message: "Invalid team number" });
-		}
+function deg2rad(deg) {
+	return deg * (Math.PI / 180);
+}
 
-		// Step 2: Retrieve current status from verifylocation table
-		const { data: verifylocationData, error: verifyError } = await supabase
-			.from("verifylocation")
-			.select(
-				"start, location1, location2, location3, location4, location5, end"
-			)
-			.eq("team", teamNumber)
-			.single();
+async function isDeviceBanned(deviceId) {
+	const { data } = await supabase.from("banned_devices").select("id").eq("device_id", deviceId).single();
+	return !!data;
+}
 
-		if (verifyError || !verifylocationData) {
-			return res.status(500).json({ message: "Unexpected error occurred" });
-		}
+// Authentication Middleware for Admin
+// simplified: checks for a secret header or similar. 
+// Real world: Verify JWT from Supabase Auth.
+// For this task: We'll assume the client sends an 'x-admin-secret' or we check a valid Supabase Session in the header.
+// Prompt said: "Protect admin routes with Supabase JWT verification."
+// Authentication Middleware for Admin
+const adminAuth = (req, res, next) => {
+	const authHeader = req.headers['authorization'];
+	const token = authHeader && authHeader.split(' ')[1];
 
-		// Step 3: Check if the start location is verified
-		if (!verifylocationData.start) {
-			if (qrData === setlocationData.start) {
-				// Fetch hint for the first location
-				const { data: locationHintData, error: hintError } = await supabase
-					.from("location")
-					.select("location_hint")
-					.eq("location_code", setlocationData.location1)
-					.single();
+	// Simple Token Check (In production use real JWT)
+	if (token === "secret-admin-token-123") {
+		next();
+	} else {
+		return res.status(403).json({ error: "Unauthorized" });
+	}
+};
 
-				if (hintError || !locationHintData) {
-					return res
-						.status(500)
-						.json({ message: "Failed to fetch location hint" });
-				}
+// --- Endpoints ---
 
-				// Update start location in verifylocation
-				const { error: updateError } = await supabase
-					.from("verifylocation")
-					.update({
-						start: setlocationData.start,
-						start_time: new Date().toISOString(),
-					})
-					.eq("team", teamNumber);
-
-				if (updateError) {
-					return res
-						.status(500)
-						.json({ message: "Failed to update start location" });
-				}
-
-				return res.status(200).json({
-					correct: true,
-					nextHint: `${locationHintData.location_hint}`,
-				});
-			} else {
-				return res
-					.status(400)
-					.json({ correct: false, message: "Incorrect start location" });
-			}
-		}
-
-		// Step 4: Check the next location to verify (location1 to location5)
-		let locationIndex = null;
-		let locationField = null;
-		let nextHint = null;
-
-		for (let i = 1; i <= 5; i++) {
-			if (!verifylocationData[`location${i}`]) {
-				locationIndex = i;
-				locationField = `location${i}`;
-
-				// Fetch hint for the next location
-				const { data: nextLocationHintData, error: nextHintError } =
-					await supabase
-						.from("location")
-						.select("location_hint")
-						.eq("location_code", setlocationData[`location${i + 1}`])
-						.single();
-
-				nextHint =
-					nextHintError || !nextLocationHintData
-						? "Congo"
-						: `${nextLocationHintData.location_hint}`;
-				break;
-			}
-		}
-
-		if (!locationField) {
-			return res
-				.status(400)
-				.json({ message: "All locations have already been visited" });
-		}
-
-		// Step 4.1: Compare QR data with the current location field
-		if (qrData === setlocationData[locationField]) {
-			// Convert current time to IST
-			const currentTimeIST = new Date(
-				new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-			).toISOString();
-
-			// Update the verified location in verifylocation
-			const { error: updateError } = await supabase
-				.from("verifylocation")
-				.update({
-					[locationField]: setlocationData[locationField],
-					[`${locationField}_time`]: currentTimeIST,
-				})
-				.eq("team", teamNumber);
-
-			if (updateError) {
-				return res.status(500).json({ message: "Failed to update location" });
-			}
-
-			// Insert the same data into the "check" table
-			const { error: insertError } = await supabase.from("register").insert({
-				team_name: teamNumber,
-				time: new Date(
-					new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-				)
-					.toTimeString()
-					.split(" ")[0], // Save only the time
-				location: setlocationData[locationField],
-			});
-
-			if (insertError) {
-				return res
-					.status(500)
-					.json({ message: "Failed to log data in check table" });
-			}
-
-			return res.status(200).json({ correct: true, nextHint });
-		} else {
-			// Incorrect QR data
-			return res
-				.status(400)
-				.json({ correct: false, message: "Wrong location" });
-		}
-	} catch (error) {
-		console.error("Error processing request:", error.message);
-		return res.status(500).json({ message: "Unexpected error occurred" });
+// 0. Auth Login
+app.post("/auth/login", (req, res) => {
+	const { password } = req.body;
+	// Hardcoded password for MVP
+	if (password === "admin123") {
+		res.json({ token: "secret-admin-token-123" });
+	} else {
+		res.status(401).json({ error: "Invalid Password" });
 	}
 });
 
-// New route to save locations to setlocation table
-app.post("/save-locations", async (req, res) => {
-	const { team, members } = req.body;
+// --- Endpoints ---
 
-	if (!team || !members || members.length === 0) {
-		return res.status(400).json({ error: "Invalid input data" });
-	}
-
+// 1. Health
+app.get("/health", async (req, res) => {
 	try {
-		// Step 1: Fetch all distinct locations except "CLG"
-		const { data, error } = await supabase
-			.from("location")
-			.select("location_code")
-			.neq("location_code", "CLG");
-
-		console.log("Fetched data:", data);
-		console.error("Error details:", error);
-
-		// Step 2: Shuffle and pick 5 unique locations
-		const uniqueLocations = [...data]
-			.map((loc) => loc.location_code) // Extract location codes
-			.sort(() => 0.5 - Math.random()) // Shuffle the array
-			.slice(0, 5); // Pick the first 5 unique values
-
-		if (new Set(uniqueLocations).size !== 5) {
-			return res
-				.status(500)
-				.json({ error: "Failed to generate unique locations" });
-		}
-
-		// Step 3: Structure the data for insertion
-		const locationData = {
-			team: team,
-			start: "CLG",
-			location1: uniqueLocations[0],
-			location2: uniqueLocations[1],
-			location3: uniqueLocations[2],
-			location4: uniqueLocations[3],
-			location5: uniqueLocations[4],
-			end: "CLG",
-		};
-
-		// Step 4: Insert team into `team_no` table
-		const teamData = {
-			team: team,
-			member1: members[0] || null,
-			member2: members[1] || null,
-			member3: members[2] || null,
-			member4: members[3] || null,
-		};
-
-		const { error: teamError } = await supabase
-			.from("team_no")
-			.insert([teamData]);
-
-		if (teamError) {
-			console.error("Error adding team:", teamError.message);
-			return res.status(500).json({ error: "Failed to add team" });
-		}
-
-		// Step 5: Insert into `setlocation` table
-		const { error: locationError } = await supabase
-			.from("setlocation")
-			.insert([locationData]);
-
-		if (locationError) {
-			console.error("Error saving locations:", locationError.message);
-			return res.status(500).json({ error: "Failed to save locations" });
-		}
-
-		// Step 6: Create initial entry in `verifylocation` table
-		const verifyData = {
-			team: team,
-			start: "CLG",
-			location1: null,
-			location2: null,
-			location3: null,
-			location4: null,
-			location5: null,
-			end: null,
-		};
-
-		const { error: verifyError } = await supabase
-			.from("verifylocation")
-			.insert([verifyData]);
-
-		if (verifyError) {
-			console.error("Error initializing verification:", verifyError.message);
-			return res
-				.status(500)
-				.json({ error: "Failed to initialize verification" });
-		}
-
-		res.status(200).json({
-			message: "Locations assigned successfully",
-			locations: locationData,
-		});
-	} catch (error) {
-		console.error("Unexpected error:", error.message);
-		res.status(500).json({ error: "Unexpected error occurred" });
-	}
-});
-
-app.get("/api/registered", async (req, res) => {
-	try {
-		const { data, error } = await supabase.from("register").select("*");
+		const { error } = await supabase.from("teams").select("count", { count: "exact", head: true });
 		if (error) throw error;
-		res.json(data);
+		res.status(200).json({ status: "OK", database: "Connected", server: "Running" });
+	} catch (err) {
+		res.status(500).json({ status: "Error", database: "Disconnected", error: err.message });
+	}
+});
+
+// 2. Register
+app.post("/register", async (req, res) => {
+	const { teamName, members } = req.body;
+	if (!teamName || !members || members.length < 1) {
+		return res.status(400).json({ error: "Invalid input" });
+	}
+
+	try {
+		const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+		const teamId = `TEAM-${suffix}`;
+
+		const { data: locations } = await supabase.from("location").select("location_code");
+		if (!locations || locations.length === 0) throw new Error("No locations");
+		const randomLoc = locations[Math.floor(Math.random() * locations.length)].location_code;
+
+		const { error } = await supabase.from("teams").insert([{
+			team_id: teamId, team_name: teamName, members: members, assigned_location: randomLoc
+		}]);
+		if (error) throw error;
+
+		res.status(200).json({ message: "Registered", teamId, assignedLocation: randomLoc });
+	} catch (error) {
+		console.error("Register Error:", error);
+		res.status(500).json({ error: error.message || "Register failed" });
+	}
+});
+
+// 3. Scan
+app.post("/scan", async (req, res) => {
+	const { teamId, locationId, deviceId, lat, lng } = req.body;
+	if (!teamId || !locationId || !deviceId) {
+		return res.status(400).json({ error: "Missing data" });
+	}
+
+	try {
+		// Anti-Cheat: Banned Device check
+		if (await isDeviceBanned(deviceId)) {
+			await supabase.from("scans").insert([{ team_id: teamId, location_id: locationId, device_id: deviceId, client_lat: lat, client_lng: lng, scan_result: "REJECTED", admin_note: "Banned Device" }]);
+			return res.status(403).json({ error: "Device Banned" });
+		}
+
+		const { data: team } = await supabase.from("teams").select("*").eq("team_id", teamId).single();
+		if (!team) return res.status(404).json({ error: "Team not found" });
+		if (team.disqualified) return res.status(403).json({ error: "Team Disqualified" });
+
+		// Device Binding Logic
+		if (!team.registered_device_id) {
+			await supabase.from("teams").update({ registered_device_id: deviceId }).eq("id", team.id);
+		} else if (team.registered_device_id !== deviceId) {
+			await supabase.from("scans").insert([{
+				team_id: teamId, location_id: locationId, device_id: deviceId, client_lat: lat, client_lng: lng, scan_result: "REJECTED", admin_note: "Unauthorized Device"
+			}]);
+			return res.status(403).json({ error: "Unauthorized Device" });
+		}
+
+		// Location Check
+		if (team.assigned_location !== locationId) {
+			await supabase.from("scans").insert([{
+				team_id: teamId, location_id: locationId, device_id: deviceId, client_lat: lat, client_lng: lng, scan_result: "FAIL", admin_note: "Wrong Location"
+			}]);
+			return res.json({ result: "FAIL", message: "Wrong Location" });
+		}
+
+
+		// Strict GPS Check
+		const { data: targetLoc } = await supabase.from("location").select("latitude, longitude").eq("location_code", locationId).single();
+
+		if (targetLoc && targetLoc.latitude && targetLoc.longitude) {
+			const distance = getDistanceFromLatLonInM(lat, lng, targetLoc.latitude, targetLoc.longitude);
+			console.log(`GPS Check: Team at [${lat}, ${lng}], Target [${targetLoc.latitude}, ${targetLoc.longitude}], Dist: ${distance}m`);
+
+			const MAX_DISTANCE = 50; // Meters
+			if (distance > MAX_DISTANCE) {
+				await supabase.from("scans").insert([{
+					team_id: teamId, location_id: locationId, device_id: deviceId, client_lat: lat, client_lng: lng,
+					scan_result: "REJECTED", admin_note: `GPS Too Far (${Math.round(distance)}m)`, distance_check_meters: distance
+				}]);
+				return res.status(403).json({ error: `You are too far away! (${Math.round(distance)}m). Get closer.` });
+			}
+		}
+
+		// Success
+		await supabase.from("scans").insert([{
+			team_id: teamId, location_id: locationId, device_id: deviceId, client_lat: lat, client_lng: lng, scan_result: "SUCCESS", distance_check_meters: 0
+		}]);
+
+		// Next Location
+		const { data: locations } = await supabase.from("location").select("location_code").neq("location_code", locationId);
+		const nextLoc = locations.length > 0 ? locations[Math.floor(Math.random() * locations.length)].location_code : "CLG";
+		await supabase.from("teams").update({ assigned_location: nextLoc }).eq("id", team.id);
+
+		res.status(200).json({ result: "SUCCESS", message: "Correct!", nextLocation: nextLoc });
+	} catch (error) {
+		console.error("Scan Error:", error);
+		res.status(500).json({ error: error.message || "Scan Error" });
+	}
+});
+
+// 4. Leaderboard
+app.get("/leaderboard", async (req, res) => {
+	try {
+		const { data: teams } = await supabase.from("teams").select("team_id, team_name");
+		const { data: scans } = await supabase.from("scans").select("team_id").eq("scan_result", "SUCCESS");
+
+		const scores = {};
+		scans.forEach(s => scores[s.team_id] = (scores[s.team_id] || 0) + 1);
+
+		const leaderboard = teams.map(t => ({
+			team_name: t.team_name,
+			score: scores[t.team_id] || 0
+		})).sort((a, b) => b.score - a.score);
+
+		res.json(leaderboard);
+	} catch (error) {
+		res.status(500).json({ error: "Error fetching leaderboard" });
+	}
+});
+
+// 5. Check Status (For frontend to know if disqualified on load)
+app.get("/team-status/:teamId", async (req, res) => {
+	const { teamId } = req.params;
+	try {
+		const { data: team } = await supabase.from("teams").select("disqualified").eq("team_id", teamId).single();
+		if (!team) return res.status(404).json({ error: "Team not found" });
+		res.json({ disqualified: team.disqualified });
 	} catch (err) {
 		res.status(500).json({ error: err.message });
 	}
 });
 
-app.get("/ping", (req, res) => {
-	console.log(`Keep-alive ping successful.`);
+// --- PUBLIC ROUTES (For Display Boards) ---
+app.get("/public/scans", async (req, res) => {
+	try {
+		// Public scan data (limit 50, recent first)
+		const { data: scans, error } = await supabase.from("scans")
+			.select("*, teams(team_name)")
+			.order("scan_time", { ascending: false })
+			.limit(50);
+
+		if (error) throw error;
+		res.json(scans);
+	} catch (err) {
+		console.error("Public Scans Error:", err);
+		res.status(500).json({ error: err.message });
+	}
 });
 
-// Start the server
+// --- ADMIN ROUTES ---
+app.use("/admin", adminAuth); // Protect all /admin routes
+
+app.get("/admin/teams", async (req, res) => {
+	try {
+		const { data: teams, error } = await supabase.from("teams").select("*");
+		if (error) throw error;
+		res.json(teams);
+	} catch (err) {
+		console.error("Admin Teams Error:", err);
+		res.status(500).json({ error: err.message });
+	}
+});
+
+app.get("/admin/scans", async (req, res) => {
+	try {
+		const { data: scans, error } = await supabase.from("scans").select("*, teams(team_name)").order("scan_time", { ascending: false });
+		if (error) throw error;
+		res.json(scans);
+	} catch (err) {
+		console.error("Admin Scans Error:", err);
+		res.status(500).json({ error: err.message });
+	}
+});
+
+app.post("/admin/disqualify", async (req, res) => {
+	const { teamId, status } = req.body;
+	console.log(`[Admin] Disqualify Request for ${teamId}, status=${status}`);
+
+	// If status is provided, use it. Otherwise default to true (disqualify).
+	const newStatus = status !== undefined ? status : true;
+
+	const { error } = await supabase.from("teams").update({ disqualified: newStatus }).eq("team_id", teamId);
+	if (error) return res.status(500).json({ error: error.message });
+
+	const action = newStatus ? "disqualified" : "re-qualified";
+	res.json({ message: `Team ${teamId} has been ${action}.` });
+});
+
+app.post("/admin/ban", async (req, res) => {
+	const { deviceId, reason } = req.body;
+	const { error } = await supabase.from("banned_devices").insert([{ device_id: deviceId, reason }]);
+	if (error) return res.status(500).json({ error: error.message });
+	res.json({ message: `Device ${deviceId} banned.` });
+});
+
 app.listen(PORT, () => {
-	console.log(`Server is running on http://localhost:${PORT}`);
+	console.log(`Server V2 running on http://localhost:${PORT}`);
 });

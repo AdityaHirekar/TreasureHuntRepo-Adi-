@@ -1,14 +1,23 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Scan from "./page/Scan";
+import Register from "./page/Register";
+import Admin from "./page/Admin";
+import Check from "./page/Check";
+import Status from "./page/Status";
+import AdminLogin from "./page/AdminLogin";
 
 function App() {
-	const navigate = useNavigate();
-
-	useEffect(() => {
-		navigate("/scan");
-	}, [navigate]);
-
-	return null;
+	return (
+		<Routes>
+			<Route path="/" element={<Navigate to="/scan" />} />
+			<Route path="/regi" element={<Register />} />
+			<Route path="/scan" element={<Scan />} />
+			<Route path="/admin" element={<Admin />} />
+			<Route path="/check" element={<Check />} />
+			<Route path="/status" element={<Status />} />
+			<Route path="/admin-login" element={<AdminLogin />} />
+		</Routes>
+	);
 }
 
 export default App;
