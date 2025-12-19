@@ -39,6 +39,7 @@ const Scan = () => {
 	const [banReason, setBanReason] = useState("");
 	const [currentClue, setCurrentClue] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [secretTapCount, setSecretTapCount] = useState(0);
 
 	// Modal State
 	const [modalState, setModalState] = useState({
@@ -133,6 +134,20 @@ const Scan = () => {
 
 	const openScanner = () => setIsScannerOpen(true);
 	const closeScanner = () => setIsScannerOpen(false);
+
+	// Secret Logout: 10 taps on Team ID
+	const handleSecretTap = () => {
+		const newCount = secretTapCount + 1;
+		setSecretTapCount(newCount);
+		if (newCount >= 10) {
+			if (window.confirm("DEBUG: Reset Session?")) {
+				localStorage.clear();
+				window.location.href = "/";
+			} else {
+				setSecretTapCount(0);
+			}
+		}
+	};
 
 	const handleSendData = async (e) => {
 		e.preventDefault();
@@ -328,7 +343,13 @@ const Scan = () => {
 							)}
 						</AnimatePresence>
 						<br />
-						<motion.label variants={itemVariants}>Team ID:</motion.label>
+						<motion.label
+							variants={itemVariants}
+							onClick={handleSecretTap}
+							style={{ cursor: 'pointer', userSelect: 'none' }}
+						>
+							Team ID:
+						</motion.label>
 						<motion.input
 							variants={itemVariants}
 							type="text"
