@@ -1,13 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const animations = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-};
+
 
 const AnimatedPage = ({ children }) => {
+    const isMobile = window.innerWidth < 768;
+
+    const animations = {
+        initial: { opacity: 0, y: isMobile ? 0 : 20 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: isMobile ? 0 : -20 },
+    };
+
     return (
         <motion.div
             variants={animations}

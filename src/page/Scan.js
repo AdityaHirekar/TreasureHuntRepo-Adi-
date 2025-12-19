@@ -279,7 +279,13 @@ const Scan = () => {
 								initial={{ scale: 0.5, y: 100, opacity: 0 }}
 								animate={{ scale: 1, y: 0, opacity: 1 }}
 								exit={{ scale: 0.5, y: 100, opacity: 0 }}
-								transition={{ type: "spring", stiffness: 300, damping: 25 }}
+								transition={{
+									type: window.innerWidth < 768 ? "tween" : "spring",
+									stiffness: 300,
+									damping: 25,
+									ease: "easeOut",
+									duration: window.innerWidth < 768 ? 0.3 : undefined
+								}}
 							>
 								<motion.button
 									className="close-button"
@@ -295,7 +301,7 @@ const Scan = () => {
 					)}
 				</AnimatePresence>
 			</div>
-		</AnimatedPage>
+		</AnimatedPage >
 	);
 };
 
