@@ -79,7 +79,7 @@ const GameModal = ({ isOpen, onClose, type = 'SUCCESS', message, secondaryMessag
                             borderRadius: '20px',
                             padding: '30px',
                             maxWidth: '400px',
-                            width: '100%',
+                            width: '90%',
                             textAlign: 'center',
                             color: '#fff',
                             fontFamily: "'Orbitron', sans-serif"

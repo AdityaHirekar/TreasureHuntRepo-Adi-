@@ -35,6 +35,7 @@ const Scan = () => {
 	const [deviceId, setDeviceId] = useState("");
 
 	const [disqualified, setDisqualified] = useState(false);
+	const [banReason, setBanReason] = useState("");
 
 	// Modal State
 	const [modalState, setModalState] = useState({
@@ -193,6 +194,7 @@ const Scan = () => {
 				} else {
 					if (response.status === 403 && result.error.includes("Disqualified")) {
 						setDisqualified(true);
+						setBanReason(result.error);
 						setModalState({
 							isOpen: true,
 							type: "DISQUALIFIED",
@@ -245,9 +247,10 @@ const Scan = () => {
 					transition={{ type: "spring", stiffness: 200, damping: 10 }}
 				>
 					<h1 style={{ color: 'red', fontSize: '3rem' }}>DISQUALIFIED</h1>
-					<p style={{ color: 'white', fontSize: '1.2rem' }}>
-						Your team has been disqualified by the admin. <br />
-						Please report to the control desk.
+					<p style={{ color: 'white', fontSize: '1.2rem', margin: '20px 0' }}>
+						{banReason || "Your team has been disqualified by the admin."}
+						<br />
+						<span style={{ fontSize: '0.9em', color: '#ffaaaa' }}>Please report to the control desk.</span>
 					</p>
 				</motion.div>
 			</div>
