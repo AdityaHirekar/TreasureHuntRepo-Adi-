@@ -70,7 +70,8 @@ input {
     font-size: 1.1rem;
     outline: none;
     text-align: center;
-    transition: all 0.3s ease;
+    /* transition: all 0.3s ease; */
+    /* Handled by Framer Motion */
 }
 
 input:focus {
@@ -88,7 +89,8 @@ button {
     /* Pill shape */
     font-size: 1.2rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* transition: all 0.3s ease; */
+    /* Handled by Framer Motion */
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -114,7 +116,7 @@ button.send-button {
 }
 
 button.send-button:hover {
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); Handled by Framer Motion */
     box-shadow: var(--mv-shadow-secondary);
     filter: brightness(1.2);
 }

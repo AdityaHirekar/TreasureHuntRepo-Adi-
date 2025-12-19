@@ -64,8 +64,9 @@ const adminAuth = (req, res, next) => {
 // 0. Auth Login
 app.post("/auth/login", (req, res) => {
 	const { password } = req.body;
-	// Hardcoded password for MVP
-	if (password === "admin123") {
+	// Secure password check using env variable or fallback
+	const adminPassword = process.env.ADMIN_PASSWORD || "admin@123";
+	if (password === adminPassword) {
 		res.json({ token: "secret-admin-token-123" });
 	} else {
 		res.status(401).json({ error: "Invalid Password" });

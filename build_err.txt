@@ -1,0 +1,22 @@
+
+> treasurehunt@0.1.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+Treating warnings as errors because process.env.CI = true.
+Most CI servers set it automatically.
+
+Failed to compile.
+
+[eslint] 
+src\page\Admin.js
+  Line 29:5:  React Hook useEffect has missing dependencies: 'fetchScans' and 'fetchTeams'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+

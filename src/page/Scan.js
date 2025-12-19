@@ -1,7 +1,29 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Scanner from "./Scanner";
 import { API_BASE_URL } from "../config";
 import "./Scan.css"; // Import the CSS file
+import AnimatedPage from "../components/AnimatedPage";
+
+const containerVariants = {
+	hidden: { opacity: 0 },
+	visible: {
+		opacity: 1,
+		transition: {
+			staggerChildren: 0.2,
+			delayChildren: 0.3
+		}
+	}
+};
+
+const itemVariants = {
+	hidden: { y: 20, opacity: 0 },
+	visible: {
+		y: 0,
+		opacity: 1,
+		transition: { type: "spring", stiffness: 100 }
+	}
+};
 
 const Scan = () => {
 	const [scannedData, setScannedData] = useState(null);
@@ -134,59 +156,137 @@ const Scan = () => {
 	if (disqualified) {
 		return (
 			<div className="main-wrapper" style={{ background: '#330000' }}>
-				<div className="container" style={{ borderColor: 'red' }}>
+				<motion.div
+					className="container"
+					style={{ borderColor: 'red' }}
+					initial={{ scale: 0.8, opacity: 0 }}
+					animate={{ scale: 1, opacity: 1 }}
+					transition={{ type: "spring", stiffness: 200, damping: 10 }}
+				>
 					<h1 style={{ color: 'red', fontSize: '3rem' }}>DISQUALIFIED</h1>
 					<p style={{ color: 'white', fontSize: '1.2rem' }}>
 						Your team has been disqualified by the admin. <br />
 						Please report to the control desk.
 					</p>
-				</div>
+				</motion.div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="main-wrapper">
-			<h1 className="page-title">Track Run - Scan</h1>
-			<div className="container">
-				<form onSubmit={handleSendData}>
-					{scannedData ? (
-						<div className="success-message">
-							Scanned: {scannedData} <br />
-							<button type="button" onClick={openScanner} style={{ fontSize: '0.8rem', marginTop: '5px' }}>Rescan</button>
-						</div>
-					) : (
-						<button className="scan-button" type="button" onClick={openScanner}>
-							Scan QR
-						</button>
+		<AnimatedPage>
+			<div className="main-wrapper">
+				<motion.h1
+					className="page-title"
+					initial={{ y: -50, opacity: 0 }}
+					animate={{ y: 0, opacity: 1 }}
+					transition={{ duration: 0.8, ease: "easeOut" }}
+				>
+					Track Run - Scan
+				</motion.h1>
+				<motion.div
+					className="container"
+					variants={containerVariants}
+					initial="hidden"
+					animate="visible"
+				>
+					<form onSubmit={handleSendData}>
+						<AnimatePresence mode="wait">
+							{scannedData ? (
+								<motion.div
+									key="success"
+									className="success-message"
+									initial={{ scale: 0.5, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									exit={{ scale: 0.5, opacity: 0 }}
+								>
+									Scanned: {scannedData} <br />
+									<motion.button
+										type="button"
+										onClick={openScanner}
+										style={{ fontSize: '0.8rem', marginTop: '5px' }}
+										whileHover={{ scale: 1.05 }}
+										whileTap={{ scale: 0.95 }}
+									>
+										Rescan
+									</motion.button>
+								</motion.div>
+							) : (
+								<motion.button
+									key="scan-btn"
+									className="scan-button"
+									type="button"
+									onClick={openScanner}
+									variants={itemVariants}
+									whileHover={{ scale: 1.05, boxShadow: "0 0 25px var(--mv-primary)" }}
+									whileTap={{ scale: 0.95 }}
+								>
+									Scan QR
+								</motion.button>
+							)}
+						</AnimatePresence>
+						<br />
+						<motion.label variants={itemVariants}>Team ID:</motion.label>
+						<motion.input
+							variants={itemVariants}
+							type="text"
+							value={teamId}
+							onChange={handleTeamIdChange}
+							required
+							placeholder="TEAM-XXXX"
+							whileFocus={{ scale: 1.02, borderColor: "var(--mv-primary)" }}
+						/>
+						<br />
+						<motion.button
+							className="send-button"
+							type="submit"
+							variants={itemVariants}
+							whileHover={{ scale: 1.05, filter: "brightness(1.2)" }}
+							whileTap={{ scale: 0.95 }}
+						>
+							Submit
+						</motion.button>
+					</form>
+					{message && (
+						<motion.p
+							style={{ marginTop: '20px', fontWeight: 'bold' }}
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
+						>
+							{message}
+						</motion.p>
 					)}
-					<br />
-					<label>Team ID:</label>
-					<input
-						type="text"
-						value={teamId}
-						onChange={handleTeamIdChange}
-						required
-						placeholder="TEAM-XXXX"
-					/>
-					<br />
-					<button className="send-button" type="submit">
-						Submit
-					</button>
-				</form>
-				{message && <p style={{ marginTop: '20px', fontWeight: 'bold' }}>{message}</p>}
+				</motion.div>
+				<AnimatePresence>
+					{isScannerOpen && (
+						<motion.div
+							className="modal"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+						>
+							<motion.div
+								className="modal-content"
+								initial={{ scale: 0.5, y: 100, opacity: 0 }}
+								animate={{ scale: 1, y: 0, opacity: 1 }}
+								exit={{ scale: 0.5, y: 100, opacity: 0 }}
+								transition={{ type: "spring", stiffness: 300, damping: 25 }}
+							>
+								<motion.button
+									className="close-button"
+									onClick={closeScanner}
+									whileHover={{ scale: 1.1, backgroundColor: "#ff4d4d", color: "white" }}
+									whileTap={{ scale: 0.9 }}
+								>
+									Close
+								</motion.button>
+								<Scanner onScanData={handleScanData} onError={handleError} />
+							</motion.div>
+						</motion.div>
+					)}
+				</AnimatePresence>
 			</div>
-			{isScannerOpen && (
-				<div className="modal">
-					<div className="modal-content">
-						<button className="close-button" onClick={closeScanner}>
-							Close
-						</button>
-						<Scanner onScanData={handleScanData} onError={handleError} />
-					</div>
-				</div>
-			)}
-		</div>
+		</AnimatedPage>
 	);
 };
 

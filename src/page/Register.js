@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { API_BASE_URL } from "../config";
 import "./Scan.css"; // Reuse existing styles for consistency
+import AnimatedPage from "../components/AnimatedPage";
 
 const Register = () => {
     const navigate = useNavigate();
@@ -67,40 +69,77 @@ const Register = () => {
     }
 
     return (
-        <div className="main-wrapper">
-            <h1 className="page-title">Team Registration</h1>
-            <div className="container">
-                <form onSubmit={handleRegister}>
-                    <label>Team Name:</label>
-                    <input
-                        type="text"
-                        value={teamName}
-                        onChange={(e) => setTeamName(e.target.value)}
-                        required
-                        placeholder="Enter Team Name"
-                    />
-
-                    <label>Members:</label>
-                    {members.map((member, index) => (
-                        <input
-                            key={index}
+        <AnimatedPage>
+            <div className="main-wrapper">
+                <motion.h1
+                    className="page-title"
+                    initial={{ y: -50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                >
+                    Team Registration
+                </motion.h1>
+                <motion.div
+                    className="container"
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                    <form onSubmit={handleRegister}>
+                        <motion.label
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            Team Name:
+                        </motion.label>
+                        <motion.input
                             type="text"
-                            value={member}
-                            onChange={(e) => handleMemberChange(index, e.target.value)}
-                            placeholder={`Member ${index + 1}`}
-                            style={{ marginBottom: '10px' }}
+                            value={teamName}
+                            onChange={(e) => setTeamName(e.target.value)}
+                            required
+                            placeholder="Enter Team Name"
+                            whileFocus={{ scale: 1.02, borderColor: "var(--mv-primary)" }}
+                            transition={{ type: "spring", stiffness: 300 }}
                         />
-                    ))}
 
-                    {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
+                        <motion.label
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                        >
+                            Members:
+                        </motion.label>
+                        {members.map((member, index) => (
+                            <motion.input
+                                key={index}
+                                type="text"
+                                value={member}
+                                onChange={(e) => handleMemberChange(index, e.target.value)}
+                                placeholder={`Member ${index + 1}`}
+                                style={{ marginBottom: '10px' }}
+                                initial={{ x: -20, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                transition={{ delay: 0.5 + (index * 0.1) }}
+                                whileFocus={{ scale: 1.02, borderColor: "var(--mv-primary)" }}
+                            />
+                        ))}
 
-                    <button className="send-button" type="submit">
-                        Register Team
-                    </button>
+                        {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
 
-                </form>
+                        <motion.button
+                            className="send-button"
+                            type="submit"
+                            whileHover={{ scale: 1.05, filter: "brightness(1.2)" }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            Register Team
+                        </motion.button>
+
+                    </form>
+                </motion.div>
             </div>
-        </div>
+        </AnimatedPage>
     );
 };
 

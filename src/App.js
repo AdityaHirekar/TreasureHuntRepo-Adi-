@@ -4,7 +4,7 @@ import Register from "./page/Register";
 import Admin from "./page/Admin";
 import Check from "./page/Check";
 import Status from "./page/Status";
-import AdminLogin from "./page/AdminLogin";
+
 
 function App() {
 	return (
@@ -15,7 +15,7 @@ function App() {
 			<Route path="/admin" element={<Admin />} />
 			<Route path="/check" element={<Check />} />
 			<Route path="/status" element={<Status />} />
-			<Route path="/admin-login" element={<AdminLogin />} />
+
 		</Routes>
 	);
 }

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { API_BASE_URL } from "../config";
+import "./Check.css";
+import AnimatedPage from "../components/AnimatedPage";
 
 const Check = () => {
 	const [data, setData] = useState([]);
@@ -55,35 +58,54 @@ const Check = () => {
 		return () => {
 			clearInterval(dataIntervalId);
 		};
-	}, []);
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return (
-		<div className="check-page">
-			<h1>Location Visited with Time</h1>
-			<button onClick={pingBackend} hidden>
-				Ping Backend
-			</button>
-			<table className="check-table">
-				<thead>
-					<tr>
-						<th>Team ID</th>
-						<th>Team Name</th>
-						<th>Location</th>
-						<th>Time</th>
-					</tr>
-				</thead>
-				<tbody>
-					{data.map((row) => (
-						<tr key={row.key_id}> {/* Use unique key */}
-							<td>{row.team_id}</td>
-							<td>{row.team_name}</td>
-							<td>{row.location}</td>
-							<td>{row.time}</td>
+		<AnimatedPage>
+			<div className="check-page">
+				<motion.h1
+					initial={{ y: -50, opacity: 0 }}
+					animate={{ y: 0, opacity: 1 }}
+					transition={{ duration: 0.8, ease: "easeOut" }}
+				>
+					Location Visited with Time
+				</motion.h1>
+				<button onClick={pingBackend} hidden>
+					Ping Backend
+				</button>
+				<motion.table
+					className="check-table"
+					initial={{ opacity: 0, scale: 0.95 }}
+					animate={{ opacity: 1, scale: 1 }}
+					transition={{ delay: 0.3, duration: 0.5 }}
+				>
+					<thead>
+						<tr>
+							<th>Team ID</th>
+							<th>Team Name</th>
+							<th>Location</th>
+							<th>Time</th>
 						</tr>
-					))}
-				</tbody>
-			</table>
-		</div>
+					</thead>
+					<tbody>
+						{data.map((row, index) => (
+							<motion.tr
+								key={row.key_id}
+								initial={{ opacity: 0, x: -20 }}
+								animate={{ opacity: 1, x: 0 }}
+								transition={{ delay: 0.1 * index }}
+								whileHover={{ scale: 1.02, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+							>
+								<td>{row.team_id}</td>
+								<td>{row.team_name}</td>
+								<td>{row.location}</td>
+								<td>{row.time}</td>
+							</motion.tr>
+						))}
+					</tbody>
+				</motion.table>
+			</div>
+		</AnimatedPage>
 	);
 };
 
