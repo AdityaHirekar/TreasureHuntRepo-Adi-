@@ -350,19 +350,33 @@ const Admin = () => {
 														<select
 															value={newLocationCode}
 															onChange={(e) => setNewLocationCode(e.target.value)}
-															style={{ background: '#333', color: 'white', padding: '5px', borderRadius: '5px' }}
+															style={{ background: '#333', color: 'white', padding: '2px 5px', borderRadius: '4px', fontSize: '0.9em' }}
 														>
 															{locationOptions.map(l => (
-																<option key={l.location_code} value={l.location_code}>{l.location_code} ({l.location_name.substring(0, 15)}...)</option>
+																<option key={l.location_code} value={l.location_code}>{l.location_code}</option>
 															))}
 														</select>
-														<button onClick={() => saveLocation(t.team_id)} style={{ background: '#00cc66', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>💾</button>
-														<button onClick={() => setEditingTeam(null)} style={{ background: '#cc0000', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>❌</button>
+														<button onClick={() => saveLocation(t.team_id)} style={{ background: 'transparent', border: '1px solid #00ff88', color: '#00ff88', borderRadius: '4px', cursor: 'pointer', padding: '2px 6px', fontSize: '0.8em' }}>💾</button>
+														<button onClick={() => setEditingTeam(null)} style={{ background: 'transparent', border: '1px solid #ff4444', color: '#ff4444', borderRadius: '4px', cursor: 'pointer', padding: '2px 6px', fontSize: '0.8em' }}>❌</button>
 													</div>
 												) : (
 													<>
 														Loc: <strong style={{ color: '#ffcc00' }}>{t.assigned_location}</strong>
-														<button onClick={() => startEditing(t)} style={{ background: 'transparent', border: '1px solid #666', color: '#ccc', marginLeft: '5px', borderRadius: '3px', cursor: 'pointer', fontSize: '0.8em' }}>✏️</button> |
+														<button
+															onClick={() => startEditing(t)}
+															style={{
+																background: 'transparent',
+																border: 'none',
+																color: '#ccc',
+																marginLeft: '5px',
+																cursor: 'pointer',
+																fontSize: '1em',
+																padding: '0 5px'
+															}}
+															title="Edit Location"
+														>
+															✏️
+														</button> |
 													</>
 												)}
 												Device: {t.registered_device_id ? <span style={{ color: '#99ff99' }}>Bound</span> : 'Unbound'} |
