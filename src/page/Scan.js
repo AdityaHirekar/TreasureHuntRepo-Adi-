@@ -66,6 +66,7 @@ const Scan = () => {
 	// Mouse parallax effect
 	useEffect(() => {
 		const handleMouseMove = (e) => {
+			if (window.innerWidth < 768) return; // Disable parallax on mobile
 			const { clientX, clientY } = e;
 			const { innerWidth, innerHeight } = window;
 			const xPercent = (clientX / innerWidth - 0.5) * 2;

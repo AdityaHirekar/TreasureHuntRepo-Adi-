@@ -47,7 +47,8 @@ const ParticlesBackground = () => {
 
         const init = () => {
             particles = [];
-            for (let i = 0; i < 50; i++) {
+            const particleCount = window.innerWidth < 768 ? 20 : 50; // Reduce count for mobile
+            for (let i = 0; i < particleCount; i++) {
                 particles.push(new Particle());
             }
         };
