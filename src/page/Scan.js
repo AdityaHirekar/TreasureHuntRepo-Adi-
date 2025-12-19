@@ -48,7 +48,8 @@ const Scan = () => {
 		if ("geolocation" in navigator) {
 			navigator.geolocation.getCurrentPosition(
 				(position) => console.log("Lat:", position.coords.latitude, "Lng:", position.coords.longitude),
-				(err) => console.error("Geo Error:", err)
+				(err) => console.error("Geo Error:", err),
+				{ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
 			);
 		}
 
@@ -146,7 +147,7 @@ const Scan = () => {
 		}, (err) => {
 			alert("Geolocation failed. Please allow location access.");
 			console.error(err);
-		});
+		}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
 	};
 
 	const handleTeamIdChange = (e) => {

@@ -23,7 +23,8 @@ const Admin = () => {
 		if (token) {
 			// Default view is teams, but we can check view state if needed
 			if (view === 'teams') fetchTeams();
-			else fetchScans();
+			else if (view === 'scans') fetchScans();
+			else if (view === 'locations') fetchLocations();
 		}
 	}, [view, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -94,6 +95,47 @@ const Admin = () => {
 			}
 		} catch (e) { addToast("Network Error: " + e.message, 'error'); }
 		setLoading(false);
+	};
+
+	const fetchLocations = async () => {
+		setLoading(true);
+		try {
+			const res = await fetch(`${API_BASE_URL}/admin/locations`, { headers: getHeaders() });
+			if (res.ok) {
+				setData(await res.json());
+			} else {
+				const err = await res.json();
+				addToast("Error: " + (err.error || res.status), 'error');
+			}
+		} catch (e) { addToast("Network Error", 'error'); }
+		setLoading(false);
+	};
+
+	const handleSetLocation = (locationCode) => {
+		if (!navigator.geolocation) return addToast("GPS not supported", 'error');
+
+		addToast("Acquiring high-accuracy GPS...", 'info');
+		navigator.geolocation.getCurrentPosition(async (position) => {
+			const lat = position.coords.latitude;
+			const lng = position.coords.longitude;
+
+			try {
+				const res = await fetch(`${API_BASE_URL}/admin/location`, {
+					method: "PUT",
+					headers: getHeaders(),
+					body: JSON.stringify({ locationCode, lat, lng })
+				});
+				if (res.ok) {
+					addToast(`Updated ${locationCode} to current location!`, 'success');
+					fetchLocations();
+				} else {
+					const err = await res.json();
+					addToast("Update Failed: " + err.error, 'error');
+				}
+			} catch (e) { addToast("Network Error", 'error'); }
+		}, (err) => {
+			addToast("GPS Error: " + err.message, 'error');
+		}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
 	};
 
 	const handleDisqualify = async (teamId, status) => {
@@ -216,6 +258,15 @@ const Admin = () => {
 						>
 							Scans
 						</motion.button>
+						<motion.button
+							className="scan-button"
+							onClick={() => setView('locations')}
+							style={view === 'locations' ? { border: '2px solid white' } : {}}
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
+						>
+							Locations
+						</motion.button>
 					</div>
 
 					{loading ? <Spinner /> : (
@@ -305,6 +356,47 @@ const Admin = () => {
 										Result: <span style={{ fontWeight: 'bold', color: s.scan_result === 'SUCCESS' ? '#99ff99' : '#ff4444' }}>{s.scan_result}</span>
 										{s.admin_note && <span style={{ fontStyle: 'italic', marginLeft: '5px' }}>({s.admin_note})</span>} <br />
 										<small style={{ opacity: 0.6 }}>{new Date(s.scan_time).toLocaleString()}</small>
+									</motion.div>
+								))}
+								{view === 'locations' && data.map((l, i) => (
+									<motion.div
+										key={l.location_code}
+										initial={{ opacity: 0, x: -20 }}
+										animate={{ opacity: 1, x: 0 }}
+										transition={{ delay: i * 0.05 }}
+										style={{
+											background: 'rgba(255,255,255,0.1)',
+											padding: '15px',
+											marginBottom: '10px',
+											borderRadius: '8px',
+											border: '1px solid rgba(255,255,255,0.1)',
+											display: 'flex',
+											justifyContent: 'space-between',
+											alignItems: 'center'
+										}}
+									>
+										<div>
+											<strong style={{ color: '#ffcc00' }}>{l.location_name}</strong> <br />
+											<span style={{ fontSize: '0.8em', fontFamily: 'monospace', opacity: 0.8 }}>{l.location_code}</span> <br />
+											<div style={{ fontSize: '0.8em', marginTop: '5px' }}>
+												{l.latitude ? (
+													<span style={{ color: '#99ff99' }}>Coords Set: {parseFloat(l.latitude).toFixed(4)}, {parseFloat(l.longitude).toFixed(4)}</span>
+												) : (
+													<span style={{ color: '#ff4444' }}>Coords Not Set</span>
+												)}
+											</div>
+										</div>
+										<motion.button
+											onClick={() => handleSetLocation(l.location_code)}
+											style={{
+												background: '#00ccff', fontSize: '0.8rem', padding: '8px 12px', width: 'auto', margin: 0,
+												color: '#000', fontWeight: 'bold'
+											}}
+											whileHover={{ scale: 1.1, boxShadow: '0 0 10px #00ccff' }}
+											whileTap={{ scale: 0.9 }}
+										>
+											📍 Set Here
+										</motion.button>
 									</motion.div>
 								))}
 							</AnimatePresence>

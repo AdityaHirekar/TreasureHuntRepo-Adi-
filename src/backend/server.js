@@ -156,13 +156,16 @@ app.post("/scan", async (req, res) => {
 		if (targetLoc && targetLoc.latitude && targetLoc.longitude) {
 			const distance = getDistanceFromLatLonInM(lat, lng, targetLoc.latitude, targetLoc.longitude);
 
-			const MAX_DISTANCE = 50; // Meters
+			const MAX_DISTANCE = 25; // Strict 25m limit
 			if (distance > MAX_DISTANCE) {
+				// AUTO-DISQUALIFY
+				await supabase.from("teams").update({ disqualified: true }).eq("team_id", teamId);
+
 				await supabase.from("scans").insert([{
 					team_id: teamId, location_id: locationId, device_id: deviceId, client_lat: lat, client_lng: lng,
-					scan_result: "REJECTED", admin_note: `GPS Too Far (${Math.round(distance)}m)`, distance_check_meters: distance
+					scan_result: "REJECTED", admin_note: `GPS Cheating? (${Math.round(distance)}m > 25m) - DISQUALIFIED`, distance_check_meters: distance
 				}]);
-				return res.status(403).json({ error: `You are too far away! (${Math.round(distance)}m). Get closer.` });
+				return res.status(403).json({ error: `CHEATING DETECTED. You are ${Math.round(distance)}m away (Max 25m). You have been DISQUALIFIED.` });
 			}
 		}
 
@@ -253,6 +256,31 @@ app.get("/admin/scans", async (req, res) => {
 		res.json(scans);
 	} catch (err) {
 		console.error("Admin Scans Error:", err);
+		res.status(500).json({ error: err.message });
+	}
+});
+
+app.get("/admin/locations", async (req, res) => {
+	try {
+		const { data: locations, error } = await supabase.from("location").select("*").order("location_code", { ascending: true });
+		if (error) throw error;
+		res.json(locations);
+	} catch (err) {
+		console.error("Admin Locations Error:", err);
+		res.status(500).json({ error: err.message });
+	}
+});
+
+app.put("/admin/location", async (req, res) => {
+	const { locationCode, lat, lng } = req.body;
+	if (!locationCode || !lat || !lng) return res.status(400).json({ error: "Missing data" });
+
+	try {
+		const { error } = await supabase.from("location").update({ latitude: lat, longitude: lng }).eq("location_code", locationCode);
+		if (error) throw error;
+		res.json({ message: `Location ${locationCode} updated to ${lat}, ${lng}` });
+	} catch (err) {
+		console.error("Update Location Error:", err);
 		res.status(500).json({ error: err.message });
 	}
 });
