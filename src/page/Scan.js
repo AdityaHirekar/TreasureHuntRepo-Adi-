@@ -368,18 +368,21 @@ const Scan = () => {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							style={{
-								marginTop: '30px',
-								background: 'rgba(0, 0, 0, 0.4)',
+								marginTop: '20px',
+								background: 'rgba(0, 0, 0, 0.6)', // Darker background for readability
 								border: '1px solid var(--mv-primary)',
 								borderRadius: '15px',
-								padding: '20px',
-								maxWidth: '90%',
-								width: '400px',
-								boxShadow: '0 0 20px rgba(0, 255, 136, 0.1)'
+								padding: '15px',
+								width: '95%', // Wider on mobile
+								maxWidth: '400px', // Cap on desktop
+								marginLeft: 'auto',
+								marginRight: 'auto',
+								boxShadow: '0 0 15px rgba(0, 255, 136, 0.15)',
+								backdropFilter: 'blur(5px)'
 							}}
 						>
-							<h3 style={{ color: 'var(--mv-primary)', marginBottom: '10px', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '2px' }}>Current Objective</h3>
-							<p style={{ color: '#fff', fontSize: '1.1rem', lineHeight: '1.5' }}>{currentClue}</p>
+							<h3 style={{ color: 'var(--mv-primary)', marginBottom: '8px', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Current Objective</h3>
+							<p style={{ color: '#fff', fontSize: '1rem', lineHeight: '1.4', wordWrap: 'break-word' }}>{currentClue}</p>
 						</motion.div>
 					)}
 				</motion.div>
