@@ -175,11 +175,17 @@ app.post("/scan", async (req, res) => {
 		}]);
 
 		// Next Location
-		const { data: locations } = await supabase.from("location").select("location_code").neq("location_code", locationId);
-		const nextLoc = locations.length > 0 ? locations[Math.floor(Math.random() * locations.length)].location_code : "CLG";
-		await supabase.from("teams").update({ assigned_location: nextLoc }).eq("id", team.id);
+		const { data: locations } = await supabase.from("location").select("location_code, location_hint").neq("location_code", locationId);
+		const nextLocObj = locations.length > 0 ? locations[Math.floor(Math.random() * locations.length)] : { location_code: "CLG", location_hint: "Game Over?" };
 
-		res.status(200).json({ result: "SUCCESS", message: "Correct!", nextLocation: nextLoc });
+		await supabase.from("teams").update({ assigned_location: nextLocObj.location_code }).eq("id", team.id);
+
+		res.status(200).json({
+			result: "SUCCESS",
+			message: "Correct!",
+			nextLocation: nextLocObj.location_code,
+			nextClue: nextLocObj.location_hint
+		});
 	} catch (error) {
 		console.error("Scan Error:", error);
 		res.status(500).json({ error: error.message || "Scan Error" });

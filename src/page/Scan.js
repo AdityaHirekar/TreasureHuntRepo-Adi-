@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import SuccessModal from "../components/SuccessModal";
 import Scanner from "./Scanner";
 import { API_BASE_URL } from "../config";
 import "./Scan.css"; // Import the CSS file
 import AnimatedPage from "../components/AnimatedPage";
+
 
 const containerVariants = {
 	hidden: { opacity: 0 },
@@ -33,6 +35,13 @@ const Scan = () => {
 	const [deviceId, setDeviceId] = useState("");
 
 	const [disqualified, setDisqualified] = useState(false);
+
+	// Modal State
+	const [successModal, setSuccessModal] = useState({
+		isOpen: false,
+		message: "",
+		nextClue: ""
+	});
 
 	// Initialize Device ID and Geolocation
 	useEffect(() => {
@@ -127,8 +136,13 @@ const Scan = () => {
 
 				if (response.ok) {
 					if (result.result === "SUCCESS") {
-						alert("🎉 Correct! " + result.message + "\nNext Location: " + result.nextLocation);
-						setMessage("Success! Next: " + result.nextLocation);
+						// REPLACE ALERT WITH MODAL
+						setSuccessModal({
+							isOpen: true,
+							message: result.message,
+							nextClue: result.nextClue || "Clue Restricted. Contact HQ."
+						});
+						setMessage("Success!");
 					} else {
 						alert("❌ " + result.message);
 						setMessage(result.message);
@@ -302,6 +316,16 @@ const Scan = () => {
 					)}
 				</AnimatePresence>
 			</div>
+
+			<SuccessModal
+				isOpen={successModal.isOpen}
+				onClose={() => {
+					setSuccessModal({ ...successModal, isOpen: false });
+					setScannedData(null); // Reset scanner to continue
+				}}
+				message={successModal.message}
+				nextClue={successModal.nextClue}
+			/>
 		</AnimatedPage >
 	);
 };
