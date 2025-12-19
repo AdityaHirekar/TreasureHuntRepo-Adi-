@@ -4,8 +4,11 @@ import { API_BASE_URL } from "../config";
 import "./Scan.css"; // Use the main theme
 import "./AdminLogin.css"; // Import login styles
 import AnimatedPage from "../components/AnimatedPage";
+import { useToast } from "../components/ToastContext";
+import Spinner from "../components/Spinner";
 
 const Admin = () => {
+	const { addToast } = useToast();
 	const [token, setToken] = useState(localStorage.getItem("admin_token"));
 	const [view, setView] = useState("teams"); // 'teams' or 'scans'
 	const [data, setData] = useState([]);
@@ -69,9 +72,9 @@ const Admin = () => {
 					setToken(null);
 				}
 				const err = await res.json();
-				alert("Server Error: " + (err.error || res.status));
+				addToast("Server Error: " + (err.error || res.status), 'error');
 			}
-		} catch (e) { alert("Network Error: " + e.message); }
+		} catch (e) { addToast("Network Error: " + e.message, 'error'); }
 		setLoading(false);
 	};
 
@@ -87,9 +90,9 @@ const Admin = () => {
 					setToken(null);
 				}
 				const err = await res.json();
-				alert("Server Error: " + (err.error || res.status));
+				addToast("Server Error: " + (err.error || res.status), 'error');
 			}
-		} catch (e) { alert("Network Error: " + e.message); }
+		} catch (e) { addToast("Network Error: " + e.message, 'error'); }
 		setLoading(false);
 	};
 
@@ -103,17 +106,17 @@ const Admin = () => {
 				body: JSON.stringify({ teamId, status })
 			});
 			if (res.ok) {
-				alert(`Team ${status ? "Disqualified" : "Re-qualified"}.`);
+				addToast(`Team ${status ? "Disqualified" : "Re-qualified"}.`, 'success');
 				fetchTeams(); // Refresh list
 			} else {
 				if (res.status === 401 || res.status === 403) {
 					localStorage.removeItem("admin_token");
 					setToken(null);
 				}
-				alert("Error updating team status.");
+				addToast("Error updating team status.", 'error');
 			}
 		} catch (e) {
-			alert("Network Error");
+			addToast("Network Error", 'error');
 		}
 	};
 
@@ -167,22 +170,31 @@ const Admin = () => {
 	return (
 		<AnimatedPage>
 			<div className="main-wrapper">
-				<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px' }}>
-					<motion.h1
-						className="page-title"
-						initial={{ y: -50, opacity: 0 }}
-						animate={{ y: 0, opacity: 1 }}
-						style={{ marginBottom: 0 }}
-					>
-						Admin Dashboard
-					</motion.h1>
-					<button
-						onClick={() => { localStorage.removeItem("admin_token"); setToken(null); }}
-						style={{ background: 'transparent', border: '1px solid white', color: 'white', padding: '5px 10px', cursor: 'pointer' }}
-					>
-						Logout
-					</button>
-				</div>
+				<motion.h1
+					className="page-title"
+					initial={{ y: -50, opacity: 0 }}
+					animate={{ y: 0, opacity: 1 }}
+					style={{ marginBottom: '10px' }}
+				>
+					Admin Dashboard
+				</motion.h1>
+				<button
+					onClick={() => { localStorage.removeItem("admin_token"); setToken(null); }}
+					style={{
+						background: 'transparent',
+						border: '1px solid rgba(255,255,255,0.5)',
+						color: 'white',
+						padding: '5px 15px',
+						cursor: 'pointer',
+						margin: '0 auto 20px auto',
+						display: 'block',
+						borderRadius: '20px',
+						fontSize: '0.9rem',
+						opacity: 0.8
+					}}
+				>
+					Logout
+				</button>
 
 				<div className="container" style={{ maxWidth: '800px', marginTop: '20px' }}>
 					<div style={{ display: 'flex', gap: '10px', marginBottom: '20px', justifyContent: 'center' }}>
@@ -206,7 +218,7 @@ const Admin = () => {
 						</motion.button>
 					</div>
 
-					{loading ? <p>Loading...</p> : (
+					{loading ? <Spinner /> : (
 						<div style={{
 							textAlign: 'left',
 							maxHeight: '400px',
@@ -236,6 +248,7 @@ const Admin = () => {
 											justifyContent: 'space-between',
 											alignItems: 'center'
 										}}
+										whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.15)', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
 									>
 										<div>
 											<strong style={{ color: '#00ccff', fontSize: '1.2em' }}>{t.team_name}</strong>
@@ -286,6 +299,7 @@ const Admin = () => {
 											borderRadius: '8px',
 											border: '1px solid rgba(255,255,255,0.1)'
 										}}
+										whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.15)', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
 									>
 										<strong style={{ color: '#ffaa00' }}>{s.team_id}</strong> @ {s.location_id} <br />
 										Result: <span style={{ fontWeight: 'bold', color: s.scan_result === 'SUCCESS' ? '#99ff99' : '#ff4444' }}>{s.scan_result}</span>

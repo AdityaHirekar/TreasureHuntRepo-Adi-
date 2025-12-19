@@ -218,7 +218,15 @@ const Scan = () => {
 									type="button"
 									onClick={openScanner}
 									variants={itemVariants}
-									whileHover={{ scale: 1.05, boxShadow: "0 0 25px var(--mv-primary)" }}
+									animate={{
+										boxShadow: ["0 0 10px rgba(0, 217, 255, 0.2)", "0 0 25px rgba(0, 217, 255, 0.6)", "0 0 10px rgba(0, 217, 255, 0.2)"],
+										scale: [1, 1.02, 1]
+									}}
+									transition={{
+										boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+										scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+									}}
+									whileHover={{ scale: 1.05, boxShadow: "0 0 35px var(--mv-primary)" }}
 									whileTap={{ scale: 0.95 }}
 								>
 									Scan QR
@@ -234,7 +242,7 @@ const Scan = () => {
 							onChange={handleTeamIdChange}
 							required
 							placeholder="TEAM-XXXX"
-							whileFocus={{ scale: 1.02, borderColor: "var(--mv-primary)" }}
+							whileFocus={{ scale: 1.02, borderColor: "var(--mv-primary)", boxShadow: "0 0 15px var(--mv-primary)" }}
 						/>
 						<br />
 						<motion.button
