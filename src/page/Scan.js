@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import SuccessModal from "../components/SuccessModal";
+import GameModal from "../components/GameModal";
 import Scanner from "./Scanner";
 import { API_BASE_URL } from "../config";
 import "./Scan.css"; // Import the CSS file
@@ -37,10 +37,11 @@ const Scan = () => {
 	const [disqualified, setDisqualified] = useState(false);
 
 	// Modal State
-	const [successModal, setSuccessModal] = useState({
+	const [modalState, setModalState] = useState({
 		isOpen: false,
+		type: "SUCCESS", // SUCCESS, FAILURE, DISQUALIFIED, ERROR
 		message: "",
-		nextClue: ""
+		secondaryMessage: ""
 	});
 
 	// Initialize Device ID and Geolocation
@@ -98,6 +99,32 @@ const Scan = () => {
 		console.error("Error:", error);
 	};
 
+	// GPS Pre-Check
+	useEffect(() => {
+		if (!("geolocation" in navigator)) {
+			setModalState({
+				isOpen: true,
+				type: "ERROR",
+				message: "GPS REQUIRED",
+				secondaryMessage: "Your device does not support geolocation."
+			});
+			return;
+		}
+
+		navigator.geolocation.getCurrentPosition(
+			() => { console.log("GPS Verified"); },
+			(err) => {
+				setModalState({
+					isOpen: true,
+					type: "FAILURE",
+					message: "GPS DISABLED",
+					secondaryMessage: "Please enable Location Services to play."
+				});
+			},
+			{ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+		);
+	}, []);
+
 	const openScanner = () => setIsScannerOpen(true);
 	const closeScanner = () => setIsScannerOpen(false);
 
@@ -106,13 +133,23 @@ const Scan = () => {
 		setMessage("Processing...");
 
 		if (!scannedData || !teamId) {
-			alert("Please provide both scanned data and Team ID.");
+			setModalState({
+				isOpen: true,
+				type: "ERROR",
+				message: "Scan Failed",
+				secondaryMessage: "Missing data. Please rescan."
+			});
 			return;
 		}
 
 		// Capture Geolocation NOW
 		if (!("geolocation" in navigator)) {
-			alert("Geolocation is required!");
+			setModalState({
+				isOpen: true,
+				type: "ERROR",
+				message: "GPS Error",
+				secondaryMessage: "Geolocation is required!"
+			});
 			return;
 		}
 
@@ -136,30 +173,58 @@ const Scan = () => {
 
 				if (response.ok) {
 					if (result.result === "SUCCESS") {
-						// REPLACE ALERT WITH MODAL
-						setSuccessModal({
+						setModalState({
 							isOpen: true,
-							message: result.message,
-							nextClue: result.nextClue || "Clue Restricted. Contact HQ."
+							type: "SUCCESS",
+							message: "Code Matches!",
+							secondaryMessage: result.nextClue || "Clue Restricted. Contact HQ."
 						});
 						setMessage("Success!");
 					} else {
-						alert("❌ " + result.message);
+						// Wrong Location / Failed Logic
+						setModalState({
+							isOpen: true,
+							type: "FAILURE",
+							message: result.message,
+							secondaryMessage: "Target Mismatch. Check your clues."
+						});
 						setMessage(result.message);
 					}
 				} else {
 					if (response.status === 403 && result.error.includes("Disqualified")) {
-						setDisqualified(true); // TRIGGER RED SCREEN
+						setDisqualified(true);
+						setModalState({
+							isOpen: true,
+							type: "DISQUALIFIED",
+							message: "CHEATING DETECTED",
+							secondaryMessage: result.error
+						});
+					} else {
+						setModalState({
+							isOpen: true,
+							type: "ERROR",
+							message: "Error",
+							secondaryMessage: result.error
+						});
 					}
-					alert("Error: " + result.error);
 					setMessage("Error: " + result.error);
 				}
 			} catch (error) {
 				console.error("Error sending data:", error);
-				alert("Network Error");
+				setModalState({
+					isOpen: true,
+					type: "ERROR",
+					message: "Network Error",
+					secondaryMessage: "Could not reach HQ server."
+				});
 			}
 		}, (err) => {
-			alert("Geolocation failed. Please allow location access.");
+			setModalState({
+				isOpen: true,
+				type: "ERROR",
+				message: "GPS Error",
+				secondaryMessage: "Geolocation failed. Please allow location access."
+			});
 			console.error(err);
 		}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
 	};
@@ -317,14 +382,15 @@ const Scan = () => {
 				</AnimatePresence>
 			</div>
 
-			<SuccessModal
-				isOpen={successModal.isOpen}
+			<GameModal
+				isOpen={modalState.isOpen}
 				onClose={() => {
-					setSuccessModal({ ...successModal, isOpen: false });
-					setScannedData(null); // Reset scanner to continue
+					setModalState({ ...modalState, isOpen: false });
+					if (modalState.type === 'SUCCESS') setScannedData(null);
 				}}
-				message={successModal.message}
-				nextClue={successModal.nextClue}
+				type={modalState.type}
+				message={modalState.message}
+				secondaryMessage={modalState.secondaryMessage}
 			/>
 		</AnimatedPage >
 	);

@@ -16,7 +16,13 @@ const Admin = () => {
 
 	// Login State
 	const [password, setPassword] = useState("");
+
 	const [loginError, setLoginError] = useState("");
+
+	// Edit Location State
+	const [editingTeam, setEditingTeam] = useState(null);
+	const [locationOptions, setLocationOptions] = useState([]);
+	const [newLocationCode, setNewLocationCode] = useState("");
 
 	// Auto-fetch on load/view switch (only if authenticated)
 	useEffect(() => {
@@ -136,6 +142,39 @@ const Admin = () => {
 		}, (err) => {
 			addToast("GPS Error: " + err.message, 'error');
 		}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+	};
+
+
+	const loadLocationOptions = async () => {
+		if (locationOptions.length > 0) return;
+		try {
+			const res = await fetch(`${API_BASE_URL}/admin/locations`, { headers: getHeaders() });
+			if (res.ok) setLocationOptions(await res.json());
+		} catch (e) { console.error(e); }
+	};
+
+	const startEditing = (team) => {
+		setEditingTeam(team.team_id);
+		setNewLocationCode(team.assigned_location);
+		loadLocationOptions();
+	};
+
+	const saveLocation = async (teamId) => {
+		try {
+			const res = await fetch(`${API_BASE_URL}/admin/team/location`, {
+				method: "PUT",
+				headers: getHeaders(),
+				body: JSON.stringify({ teamId, locationCode: newLocationCode })
+			});
+			if (res.ok) {
+				addToast("Location Updated", 'success');
+				setEditingTeam(null);
+				fetchTeams();
+			} else {
+				const err = await res.json();
+				addToast("Update Failed: " + err.error, 'error');
+			}
+		} catch (e) { addToast("Network Error", 'error'); }
 	};
 
 	const handleDisqualify = async (teamId, status) => {
@@ -306,7 +345,26 @@ const Admin = () => {
 											<span style={{ fontSize: '0.9em', opacity: 0.7, marginLeft: '10px' }}>({t.team_id})</span>
 											<br />
 											<div style={{ fontSize: '0.9em', marginTop: '5px', opacity: 0.9 }}>
-												Loc: {t.assigned_location} |
+												{editingTeam === t.team_id ? (
+													<div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+														<select
+															value={newLocationCode}
+															onChange={(e) => setNewLocationCode(e.target.value)}
+															style={{ background: '#333', color: 'white', padding: '5px', borderRadius: '5px' }}
+														>
+															{locationOptions.map(l => (
+																<option key={l.location_code} value={l.location_code}>{l.location_code} ({l.location_name.substring(0, 15)}...)</option>
+															))}
+														</select>
+														<button onClick={() => saveLocation(t.team_id)} style={{ background: '#00cc66', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>💾</button>
+														<button onClick={() => setEditingTeam(null)} style={{ background: '#cc0000', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>❌</button>
+													</div>
+												) : (
+													<>
+														Loc: <strong style={{ color: '#ffcc00' }}>{t.assigned_location}</strong>
+														<button onClick={() => startEditing(t)} style={{ background: 'transparent', border: '1px solid #666', color: '#ccc', marginLeft: '5px', borderRadius: '3px', cursor: 'pointer', fontSize: '0.8em' }}>✏️</button> |
+													</>
+												)}
 												Device: {t.registered_device_id ? <span style={{ color: '#99ff99' }}>Bound</span> : 'Unbound'} |
 												Status: {t.disqualified ? <span style={{ color: '#ff4444' }}>DISQUALIFIED</span> : 'Active'}
 											</div>

@@ -8,13 +8,23 @@ import NotFound from "./page/NotFound";
 import ParticlesBackground from "./components/ParticlesBackground";
 
 
+
+
+
+// Route Guard that Forces Scan if Logged In
+const ForceScanIfLoggedIn = ({ children }) => {
+	const teamId = localStorage.getItem("teamId");
+	if (teamId) return <Navigate to="/scan" replace />;
+	return children;
+};
+
 function App() {
 	return (
 		<>
 			<ParticlesBackground />
 			<Routes>
-				<Route path="/" element={<Navigate to="/scan" />} />
-				<Route path="/regi" element={<Register />} />
+				<Route path="/" element={<ForceScanIfLoggedIn><Navigate to="/regi" /></ForceScanIfLoggedIn>} />
+				<Route path="/regi" element={<ForceScanIfLoggedIn><Register /></ForceScanIfLoggedIn>} />
 				<Route path="/scan" element={<Scan />} />
 				<Route path="/admin" element={<Admin />} />
 				<Route path="/check" element={<Check />} />

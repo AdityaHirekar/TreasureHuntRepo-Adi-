@@ -97,9 +97,9 @@ app.post("/register", async (req, res) => {
 		const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
 		const teamId = `TEAM-${suffix}`;
 
-		const { data: locations } = await supabase.from("location").select("location_code");
-		if (!locations || locations.length === 0) throw new Error("No locations");
-		const randomLoc = locations[Math.floor(Math.random() * locations.length)].location_code;
+
+		// Default Start Location: CLG
+		const randomLoc = "CLG";
 
 		const { error } = await supabase.from("teams").insert([{
 			team_id: teamId, team_name: teamName, members: members, assigned_location: randomLoc
@@ -303,6 +303,20 @@ app.post("/admin/disqualify", async (req, res) => {
 
 	const action = newStatus ? "disqualified" : "re-qualified";
 	res.json({ message: `Team ${teamId} has been ${action}.` });
+});
+
+app.put("/admin/team/location", async (req, res) => {
+	const { teamId, locationCode } = req.body;
+	if (!teamId || !locationCode) return res.status(400).json({ error: "Missing data" });
+
+	try {
+		const { error } = await supabase.from("teams").update({ assigned_location: locationCode }).eq("team_id", teamId);
+		if (error) throw error;
+		res.json({ message: `Team ${teamId} moved to ${locationCode}` });
+	} catch (err) {
+		console.error("Update Team Loc Error:", err);
+		res.status(500).json({ error: err.message });
+	}
 });
 
 app.post("/admin/ban", async (req, res) => {
