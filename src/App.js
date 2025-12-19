@@ -26,10 +26,10 @@ function App() {
 				<Route path="/" element={<ForceScanIfLoggedIn><Navigate to="/regi" /></ForceScanIfLoggedIn>} />
 				<Route path="/regi" element={<ForceScanIfLoggedIn><Register /></ForceScanIfLoggedIn>} />
 				<Route path="/scan" element={<Scan />} />
-				<Route path="/admin" element={<Admin />} />
-				<Route path="/check" element={<Check />} />
-				<Route path="/status" element={<Status />} />
-				<Route path="*" element={<NotFound />} />
+				<Route path="/admin" element={<ForceScanIfLoggedIn><Admin /></ForceScanIfLoggedIn>} />
+				<Route path="/check" element={<ForceScanIfLoggedIn><Check /></ForceScanIfLoggedIn>} />
+				<Route path="/status" element={<ForceScanIfLoggedIn><Status /></ForceScanIfLoggedIn>} />
+				<Route path="*" element={<ForceScanIfLoggedIn><NotFound /></ForceScanIfLoggedIn>} />
 			</Routes>
 		</>
 	);
