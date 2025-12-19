@@ -212,13 +212,21 @@ app.get("/leaderboard", async (req, res) => {
 	}
 });
 
-// 5. Check Status (For frontend to know if disqualified on load)
+// 5. Check Status (For frontend to know if disqualified on load or get current hint)
 app.get("/team-status/:teamId", async (req, res) => {
 	const { teamId } = req.params;
 	try {
-		const { data: team } = await supabase.from("teams").select("disqualified").eq("team_id", teamId).single();
+		const { data: team } = await supabase.from("teams").select("disqualified, assigned_location").eq("team_id", teamId).single();
 		if (!team) return res.status(404).json({ error: "Team not found" });
-		res.json({ disqualified: team.disqualified });
+
+		// Fetch hint for the assigned location
+		let currentHint = "Unknown Objective";
+		if (team.assigned_location) {
+			const { data: loc } = await supabase.from("location").select("location_hint").eq("location_code", team.assigned_location).single();
+			if (loc) currentHint = loc.location_hint;
+		}
+
+		res.json({ disqualified: team.disqualified, currentClue: currentHint });
 	} catch (err) {
 		res.status(500).json({ error: err.message });
 	}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import GameModal from "../components/GameModal";
+import Spinner from "../components/Spinner";
 import Scanner from "./Scanner";
 import { API_BASE_URL } from "../config";
 import "./Scan.css"; // Import the CSS file
@@ -36,6 +37,8 @@ const Scan = () => {
 
 	const [disqualified, setDisqualified] = useState(false);
 	const [banReason, setBanReason] = useState("");
+	const [currentClue, setCurrentClue] = useState("");
+	const [loading, setLoading] = useState(false);
 
 	// Modal State
 	const [modalState, setModalState] = useState({
@@ -70,6 +73,8 @@ const Scan = () => {
 				.then(res => res.json())
 				.then(data => {
 					if (data.disqualified) setDisqualified(true);
+					// Set persistent clue
+					if (data.currentClue) setCurrentClue(data.currentClue);
 				})
 				.catch(err => console.error(err));
 		}
@@ -131,7 +136,8 @@ const Scan = () => {
 
 	const handleSendData = async (e) => {
 		e.preventDefault();
-		setMessage("Processing...");
+		// setMessage("Processing..."); // Removed text based message
+		setLoading(true);
 
 		if (!scannedData || !teamId) {
 			setModalState({
@@ -180,7 +186,9 @@ const Scan = () => {
 							message: "Code Matches!",
 							secondaryMessage: result.nextClue || "Clue Restricted. Contact HQ."
 						});
-						setMessage("Success!");
+						// Update persistent clue
+						setCurrentClue(result.nextClue || "Proceed to extraction point.");
+						setMessage(""); // Clear old messages
 					} else {
 						// Wrong Location / Failed Logic
 						setModalState({
@@ -219,6 +227,8 @@ const Scan = () => {
 					message: "Network Error",
 					secondaryMessage: "Could not reach HQ server."
 				});
+			} finally {
+				setLoading(false);
 			}
 		}, (err) => {
 			setModalState({
@@ -347,6 +357,30 @@ const Scan = () => {
 						>
 							{message}
 						</motion.p>
+					)}
+
+					{/* Loading Spinner */}
+					{loading && <Spinner />}
+
+					{/* Persistent Clue Dashboard */}
+					{!loading && currentClue && (
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							style={{
+								marginTop: '30px',
+								background: 'rgba(0, 0, 0, 0.4)',
+								border: '1px solid var(--mv-primary)',
+								borderRadius: '15px',
+								padding: '20px',
+								maxWidth: '90%',
+								width: '400px',
+								boxShadow: '0 0 20px rgba(0, 255, 136, 0.1)'
+							}}
+						>
+							<h3 style={{ color: 'var(--mv-primary)', marginBottom: '10px', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '2px' }}>Current Objective</h3>
+							<p style={{ color: '#fff', fontSize: '1.1rem', lineHeight: '1.5' }}>{currentClue}</p>
+						</motion.div>
 					)}
 				</motion.div>
 				<AnimatePresence>
