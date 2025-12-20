@@ -31,6 +31,7 @@ const itemVariants = {
 };
 
 const Scan = () => {
+	const ENABLE_COMPASS = false; // Set to true to enable Proximity Compass
 	const [scannedData, setScannedData] = useState(null);
 	const [teamId, setTeamId] = useState(localStorage.getItem("teamId") || "");
 	const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -41,6 +42,71 @@ const Scan = () => {
 	const [banReason, setBanReason] = useState("");
 	const [currentClue, setCurrentClue] = useState("");
 	const [loading, setLoading] = useState(false);
+
+	// Compass State
+	const [targetCoords, setTargetCoords] = useState(null);
+	const [heading, setHeading] = useState(0);
+	const [myCoords, setMyCoords] = useState(null);
+	const [distance, setDistance] = useState(null);
+	const [showCompass, setShowCompass] = useState(false);
+
+	const handleRequestPermission = () => {
+		if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+			DeviceOrientationEvent.requestPermission()
+				.then(permissionState => {
+					if (permissionState === 'granted') {
+						window.addEventListener('deviceorientation', handleOrientation);
+					}
+				})
+				.catch(console.error);
+		} else {
+			window.addEventListener('deviceorientation', handleOrientation);
+		}
+	};
+
+	const handleOrientation = (event) => {
+		// webkitCompassHeading for iOS, alpha for Android
+		let compass = event.webkitCompassHeading;
+		if (!compass && event.alpha) {
+			compass = Math.abs(event.alpha - 360);
+		}
+		setHeading(compass || 0);
+	};
+
+	useEffect(() => {
+		// Watch setup if target exists and Feature is Enabled
+		if (!ENABLE_COMPASS || !targetCoords) return;
+
+		const watchId = navigator.geolocation.watchPosition(
+			(pos) => {
+				const { latitude, longitude } = pos.coords;
+				setMyCoords({ lat: latitude, lng: longitude });
+
+				const dist = getDistance(latitude, longitude, targetCoords.lat, targetCoords.lng);
+				setDistance(dist);
+
+				if (dist <= 15) { // 15m Range
+					setShowCompass(true);
+					// Auto-attach listener if possible
+					if (!window.DeviceOrientationEvent?.requestPermission) {
+						window.addEventListener('deviceorientation', handleOrientation);
+					}
+				} else {
+					setShowCompass(false);
+					window.removeEventListener('deviceorientation', handleOrientation);
+				}
+			},
+			(err) => console.warn(err),
+			{ enableHighAccuracy: true }
+		);
+
+		return () => {
+			navigator.geolocation.clearWatch(watchId);
+			window.removeEventListener('deviceorientation', handleOrientation);
+		};
+	}, [targetCoords]);
+
+
 	const [secretTapCount, setSecretTapCount] = useState(0);
 
 	// Modal State
@@ -78,6 +144,7 @@ const Scan = () => {
 					if (data.disqualified) setDisqualified(true);
 					// Set persistent clue
 					if (data.currentClue) setCurrentClue(data.currentClue);
+					if (data.targetCoords) setTargetCoords(data.targetCoords);
 				})
 				.catch(err => console.error(err));
 		}
@@ -424,6 +491,47 @@ const Scan = () => {
 							<p style={{ color: '#fff', fontSize: '1rem', lineHeight: '1.4', wordWrap: 'break-word' }}>{currentClue}</p>
 						</motion.div>
 					)}
+
+					{/* Proximity Compass (Backpocket: Enable via ENABLE_COMPASS flag) */}
+					{ENABLE_COMPASS && showCompass && myCoords && targetCoords && (
+						<motion.div
+							initial={{ opacity: 0, scale: 0.8 }}
+							animate={{ opacity: 1, scale: 1 }}
+							className="compass-wrapper"
+							style={{ margin: "20px 0", textAlign: "center", position: "relative", zIndex: 10 }}
+						>
+							<div style={{ color: "#00fff2", fontWeight: "bold", marginBottom: "10px", textShadow: "0 0 10px #00fff2" }}>
+								NEARBY: {Math.round(distance)}m
+							</div>
+
+							<div style={{
+								fontSize: "4rem",
+								color: "#00fff2",
+								transform: `rotate(${getBearing(myCoords.lat, myCoords.lng, targetCoords.lat, targetCoords.lng) - heading}deg)`,
+								transition: "transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+								display: "inline-block",
+								filter: "drop-shadow(0 0 15px #00fff2)"
+							}}>
+								➤
+							</div>
+
+							{typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function' && (
+								<div style={{ marginTop: "10px" }}>
+									<button type="button" onClick={handleRequestPermission} style={{
+										background: "rgba(0,0,0,0.5)",
+										border: "1px solid rgba(0, 255, 242, 0.3)",
+										color: "#00fff2",
+										fontSize: "0.7rem",
+										padding: "4px 8px",
+										borderRadius: "4px",
+										cursor: "pointer"
+									}}>
+										Enable Compass
+									</button>
+								</div>
+							)}
+						</motion.div>
+					)}
 				</motion.div>
 				<AnimatePresence>
 					{isScannerOpen && (
@@ -476,5 +584,33 @@ const Scan = () => {
 };
 
 export default Scan;
+
+// Helper for Bearing
+function getBearing(startLat, startLng, destLat, destLng) {
+	const toRad = (deg) => deg * Math.PI / 180;
+	const toDeg = (rad) => rad * 180 / Math.PI;
+
+	const y = Math.sin(toRad(destLng - startLng)) * Math.cos(toRad(destLat));
+	const x = Math.cos(toRad(startLat)) * Math.sin(toRad(destLat)) -
+		Math.sin(toRad(startLat)) * Math.cos(toRad(destLat)) * Math.cos(toRad(destLng - startLng));
+	const brng = toDeg(Math.atan2(y, x));
+	return (brng + 360) % 360;
+}
+
+// Helper for Distance
+function getDistance(lat1, lon1, lat2, lon2) {
+	const R = 6371e3; // metres
+	const φ1 = lat1 * Math.PI / 180;
+	const φ2 = lat2 * Math.PI / 180;
+	const Δφ = (lat2 - lat1) * Math.PI / 180;
+	const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+	const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+		Math.cos(φ1) * Math.cos(φ2) *
+		Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+	return R * c;
+}
 
 
