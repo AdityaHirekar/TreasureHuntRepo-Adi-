@@ -6,6 +6,7 @@ import "./AdminLogin.css"; // Import login styles
 import AnimatedPage from "../components/AnimatedPage";
 import { useToast } from "../components/ToastContext";
 import Spinner from "../components/Spinner";
+import { OpenLocationCode } from "open-location-code";
 
 const Admin = () => {
 	const { addToast } = useToast();
@@ -125,6 +126,13 @@ const Admin = () => {
 			const lat = position.coords.latitude;
 			const lng = position.coords.longitude;
 
+			// Calculate Plus Code
+			let plusCode = "";
+			try {
+				plusCode = OpenLocationCode.encode(lat, lng, 11); // 11 digits for high precision
+				console.log("Calculated Plus Code:", plusCode);
+			} catch (e) { console.error("Plus Code Error:", e); }
+
 			try {
 				const res = await fetch(`${API_BASE_URL}/admin/location`, {
 					method: "PUT",
@@ -132,7 +140,8 @@ const Admin = () => {
 					body: JSON.stringify({ locationCode, lat, lng })
 				});
 				if (res.ok) {
-					addToast(`Updated ${locationCode} to current location!`, 'success');
+					addToast(`Updated! Plus Code: ${plusCode}`, 'success');
+					// Optional: We could try to update the location_code to be the plus code if the API supported it
 					fetchLocations();
 				} else {
 					const err = await res.json();

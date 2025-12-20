@@ -6,6 +6,8 @@ import Scanner from "./Scanner";
 import { API_BASE_URL } from "../config";
 import "./Scan.css"; // Import the CSS file
 import AnimatedPage from "../components/AnimatedPage";
+import { OpenLocationCode } from "open-location-code";
+import { playSuccessSound, playErrorSound, vibrateSuccess, vibrateError } from "../utils/audio";
 
 
 const containerVariants = {
@@ -179,6 +181,13 @@ const Scan = () => {
 			const lat = position.coords.latitude;
 			const lng = position.coords.longitude;
 
+			// Client-Side Plus Code Generation
+			let userPlusCode = "";
+			try {
+				userPlusCode = OpenLocationCode.encode(lat, lng);
+				console.log("User Plus Code:", userPlusCode);
+			} catch (e) { console.error(e); }
+
 			try {
 				const response = await fetch(`${API_BASE_URL}/scan`, {
 					method: "POST",
@@ -188,7 +197,8 @@ const Scan = () => {
 						locationId: scannedData,
 						deviceId: deviceId,
 						lat: lat,
-						lng: lng
+						lng: lng,
+						userPlusCode: userPlusCode // Send the code!
 					}),
 				});
 				const result = await response.json();
@@ -203,7 +213,9 @@ const Scan = () => {
 						});
 						// Update persistent clue
 						setCurrentClue(result.nextClue || "Proceed to extraction point.");
-						setMessage(""); // Clear old messages
+						setMessage(`Location Verified: ${userPlusCode}`);
+						playSuccessSound();
+						vibrateSuccess();
 					} else {
 						// Wrong Location / Failed Logic
 						setModalState({
@@ -212,9 +224,13 @@ const Scan = () => {
 							message: result.message,
 							secondaryMessage: "Target Mismatch. Check your clues."
 						});
-						setMessage(result.message);
+						setMessage(`Wrong Location: ${userPlusCode}`);
+						playErrorSound();
+						vibrateError();
 					}
 				} else {
+					playErrorSound();
+					vibrateError();
 					if (response.status === 403 && result.error.includes("Disqualified")) {
 						setDisqualified(true);
 						setBanReason(result.error);
@@ -236,6 +252,8 @@ const Scan = () => {
 				}
 			} catch (error) {
 				console.error("Error sending data:", error);
+				playErrorSound();
+				vibrateError();
 				setModalState({
 					isOpen: true,
 					type: "ERROR",

@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { createClient } = require("@supabase/supabase-js");
+const OpenLocationCode = require("open-location-code").OpenLocationCode;
 
 const app = express();
 const PORT = 5050;
@@ -150,13 +151,22 @@ app.post("/scan", async (req, res) => {
 		}
 
 
-		// Strict GPS Check
-		const { data: targetLoc } = await supabase.from("location").select("latitude, longitude").eq("location_code", locationId).single();
+		// Strict GPS Check (DB Coordinates)
+		let targetLat, targetLng;
 
-		if (targetLoc && targetLoc.latitude && targetLoc.longitude) {
-			const distance = getDistanceFromLatLonInM(lat, lng, targetLoc.latitude, targetLoc.longitude);
+		const { data: targetLoc } = await supabase.from("location").select("latitude, longitude").eq("location_code", locationId).single();
+		if (targetLoc) {
+			targetLat = targetLoc.latitude;
+			targetLng = targetLoc.longitude;
+		}
+
+		if (targetLat && targetLng) {
+			const distance = getDistanceFromLatLonInM(lat, lng, targetLat, targetLng);
 
 			const MAX_DISTANCE = 25; // Strict 25m limit
+			// If using Plus Code (which has an area), we might be more lenient or measure to edge? 
+			// Center is fine for 25m threshold if the code is precise enough (10+ digits).
+
 			if (distance > MAX_DISTANCE) {
 				// AUTO-DISQUALIFY
 				await supabase.from("teams").update({ disqualified: true }).eq("team_id", teamId);
@@ -167,6 +177,9 @@ app.post("/scan", async (req, res) => {
 				}]);
 				return res.status(403).json({ error: `CHEATING DETECTED. You are ${Math.round(distance)}m away (Max 25m). You have been DISQUALIFIED.` });
 			}
+		} else {
+			// No Coordinates found for this ID
+			console.log("No coordinates found for location:", locationId);
 		}
 
 		// Success
