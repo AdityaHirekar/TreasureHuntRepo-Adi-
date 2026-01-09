@@ -50,21 +50,23 @@ const Register = () => {
 
     if (successData) {
         return (
-            <div className="main-wrapper">
-                <h1 className="page-title">Registration Complete</h1>
-                <div className="container">
-                    <div className="success-message">
-                        <h3>Team Registered!</h3>
-                        <p><strong>Team ID:</strong> {successData.teamId}</p>
-                        <p><strong>Assigned Location (Start):</strong> {successData.assignedLocation}</p>
-                        <p className="note">Save your Team ID! You will need it to scan.</p>
-                        <br />
-                        <button className="scan-button" onClick={() => navigate("/scan")}>
-                            Go to Scanner
-                        </button>
+            <AnimatedPage>
+                <div className="main-wrapper" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                    <h1 className="page-title">Registration Complete</h1>
+                    <div className="container">
+                        <div className="success-message">
+                            <h3>Team Registered!</h3>
+                            <p><strong>Team ID:</strong> {successData.teamId}</p>
+                            <p><strong>Assigned Location (Start):</strong> {successData.assignedLocation}</p>
+                            <p className="note">Save your Team ID! You will need it to scan.</p>
+                            <br />
+                            <button className="scan-button" onClick={() => navigate("/scan")}>
+                                Go to Scanner
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </AnimatedPage>
         );
     }
 
