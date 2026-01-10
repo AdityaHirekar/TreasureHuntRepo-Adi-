@@ -288,38 +288,34 @@ const Admin = () => {
 				</button>
 
 				<div className="container" style={{ maxWidth: '800px', marginTop: '20px' }}>
-					<div style={{ display: 'flex', gap: '10px', marginBottom: '20px', justifyContent: 'center' }}>
+					<div className="admin-nav-buttons">
 						<motion.button
-							className="scan-button"
+							className={`scan-button ${view === 'teams' ? 'active' : ''}`}
 							onClick={() => setView('teams')}
-							style={view === 'teams' ? { border: '2px solid white' } : {}}
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
 						>
 							Teams
 						</motion.button>
 						<motion.button
-							className="scan-button"
+							className={`scan-button ${view === 'scans' ? 'active' : ''}`}
 							onClick={() => setView('scans')}
-							style={view === 'scans' ? { border: '2px solid white' } : {}}
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
 						>
 							Scans
 						</motion.button>
 						<motion.button
-							className="scan-button"
+							className={`scan-button ${view === 'locations' ? 'active' : ''}`}
 							onClick={() => setView('locations')}
-							style={view === 'locations' ? { border: '2px solid white' } : {}}
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
 						>
 							Locations
 						</motion.button>
 						<motion.button
-							className="scan-button"
+							className={`scan-button ${view === 'leaderboard' ? 'active' : ''}`}
 							onClick={() => setView('leaderboard')}
-							style={view === 'leaderboard' ? { border: '2px solid white' } : {}}
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
 						>
@@ -355,10 +351,8 @@ const Admin = () => {
 											marginBottom: '10px',
 											borderRadius: '8px',
 											border: '1px solid rgba(255,255,255,0.1)',
-											display: 'flex',
-											justifyContent: 'space-between',
-											alignItems: 'center'
 										}}
+										className="admin-list-item"
 										whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.15)', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
 									>
 										<div>
@@ -407,8 +401,9 @@ const Admin = () => {
 										{!t.disqualified ? (
 											<motion.button
 												onClick={() => handleDisqualify(t.team_id, true)}
+												className="action-button disconnect-btn"
 												style={{
-													background: 'red', fontSize: '0.8rem', padding: '5px 10px', width: 'auto', margin: 0
+													fontSize: '0.8rem', padding: '5px 10px', width: 'auto', margin: 0
 												}}
 												whileHover={{ scale: 1.1 }}
 												whileTap={{ scale: 0.9 }}
@@ -418,8 +413,9 @@ const Admin = () => {
 										) : (
 											<motion.button
 												onClick={() => handleDisqualify(t.team_id, false)}
+												className="action-button connect-btn"
 												style={{
-													background: '#00cc00', fontSize: '0.8rem', padding: '5px 10px', width: 'auto', margin: 0
+													fontSize: '0.8rem', padding: '5px 10px', width: 'auto', margin: 0
 												}}
 												whileHover={{ scale: 1.1 }}
 												whileTap={{ scale: 0.9 }}
@@ -463,10 +459,10 @@ const Admin = () => {
 											marginBottom: '10px',
 											borderRadius: '8px',
 											border: '1px solid rgba(255,255,255,0.1)',
-											display: 'flex',
 											justifyContent: 'space-between',
 											alignItems: 'center'
 										}}
+										className="admin-list-item"
 									>
 										<div>
 											<strong style={{ color: '#ffcc00' }}>{l.location_name}</strong> <br />
@@ -482,9 +478,10 @@ const Admin = () => {
 										<motion.button
 											onClick={() => handleSetLocation(l.location_code)}
 											style={{
-												background: '#00ccff', fontSize: '0.8rem', padding: '8px 12px', width: 'auto', margin: 0,
+												fontSize: '0.8rem', padding: '8px 12px', width: 'auto', margin: 0,
 												color: '#000', fontWeight: 'bold'
 											}}
+											className="action-button set-location-btn"
 											whileHover={{ scale: 1.1, boxShadow: '0 0 10px #00ccff' }}
 											whileTap={{ scale: 0.9 }}
 										>
@@ -497,7 +494,7 @@ const Admin = () => {
 					)}
 				</div>
 			</div>
-		</AnimatedPage>
+		</AnimatedPage >
 	);
 };
 
