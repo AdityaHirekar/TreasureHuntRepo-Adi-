@@ -104,7 +104,7 @@ const Scan = () => {
 			navigator.geolocation.clearWatch(watchId);
 			window.removeEventListener('deviceorientation', handleOrientation);
 		};
-	}, [targetCoords]);
+	}, [targetCoords, ENABLE_COMPASS]);
 
 
 	const [secretTapCount, setSecretTapCount] = useState(0);
@@ -118,7 +118,7 @@ const Scan = () => {
 	});
 
 	// Fetch Team Status Helper
-	const fetchTeamStatus = () => {
+	const fetchTeamStatus = React.useCallback(() => {
 		if (!teamId) return;
 		fetch(`${API_BASE_URL}/team-status/${teamId}`)
 			.then(res => res.json())
@@ -128,7 +128,7 @@ const Scan = () => {
 				if (data.targetCoords) setTargetCoords(data.targetCoords);
 			})
 			.catch(err => console.error(err));
-	};
+	}, [teamId]);
 
 	// Initialize Device ID and Geolocation
 	useEffect(() => {
@@ -151,7 +151,7 @@ const Scan = () => {
 
 		// 3. Check Status on Load
 		fetchTeamStatus();
-	}, [teamId]);
+	}, [teamId, fetchTeamStatus]);
 
 	// Mouse parallax effect
 	useEffect(() => {
