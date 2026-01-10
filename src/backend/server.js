@@ -187,9 +187,39 @@ app.post("/scan", async (req, res) => {
 			team_id: teamId, location_id: locationId, device_id: deviceId, client_lat: lat, client_lng: lng, scan_result: "SUCCESS", distance_check_meters: 0
 		}]);
 
-		// Next Location
-		const { data: locations } = await supabase.from("location").select("location_code, location_hint").neq("location_code", locationId);
-		const nextLocObj = locations.length > 0 ? locations[Math.floor(Math.random() * locations.length)] : { location_code: "CLG", location_hint: "Game Over?" };
+		// Check Win Condition: Have they visited 5 locations (excluding CLG)?
+		const { count: successCount, error: countError } = await supabase
+			.from("scans")
+			.select("*", { count: "exact", head: true })
+			.eq("team_id", teamId)
+			.eq("scan_result", "SUCCESS")
+			.neq("location_id", "CLG");
+
+		if (countError) console.error("Count Error", countError);
+
+		// If this was the 5th one (or more), they are done.
+		if ((successCount || 0) >= 5) {
+			await supabase.from("teams").update({ assigned_location: "COMPLETED" }).eq("id", team.id);
+
+			return res.status(200).json({
+				result: "SUCCESS",
+				message: "MISSION COMPLETE!",
+				nextLocation: "COMPLETED",
+				nextClue: "MISSION COMPLETE! Return to College immediately for debriefing."
+			});
+		}
+
+		// Next Location (Normal Loop)
+		// Exclude CLG from the random pool
+		const { data: locations } = await supabase.from("location").select("location_code, location_hint").neq("location_code", locationId).neq("location_code", "CLG");
+
+		let nextLocObj;
+		if (locations.length > 0) {
+			nextLocObj = locations[Math.floor(Math.random() * locations.length)];
+		} else {
+			// Fallback if no locations left (shouldn't happen with excluding CLG unless only 1 loc exists)
+			nextLocObj = { location_code: "COMPLETED", location_hint: "No more locations. Return to Base." };
+		}
 
 		await supabase.from("teams").update({ assigned_location: nextLocObj.location_code }).eq("id", team.id);
 
@@ -234,7 +264,9 @@ app.get("/team-status/:teamId", async (req, res) => {
 
 		// Fetch hint for the assigned location
 		let currentHint = "Unknown Objective";
-		if (team.assigned_location) {
+		if (team.assigned_location === "COMPLETED") {
+			currentHint = "MISSION COMPLETE! Return to College immediately for debriefing.";
+		} else if (team.assigned_location) {
 			const { data: loc } = await supabase.from("location").select("location_hint").eq("location_code", team.assigned_location).single();
 			if (loc) currentHint = loc.location_hint;
 		}

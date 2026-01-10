@@ -117,6 +117,19 @@ const Scan = () => {
 		secondaryMessage: ""
 	});
 
+	// Fetch Team Status Helper
+	const fetchTeamStatus = () => {
+		if (!teamId) return;
+		fetch(`${API_BASE_URL}/team-status/${teamId}`)
+			.then(res => res.json())
+			.then(data => {
+				if (data.disqualified) setDisqualified(true);
+				if (data.currentClue) setCurrentClue(data.currentClue);
+				if (data.targetCoords) setTargetCoords(data.targetCoords);
+			})
+			.catch(err => console.error(err));
+	};
+
 	// Initialize Device ID and Geolocation
 	useEffect(() => {
 		// 1. Device ID
@@ -137,17 +150,7 @@ const Scan = () => {
 		}
 
 		// 3. Check Status on Load
-		if (teamId) {
-			fetch(`${API_BASE_URL}/team-status/${teamId}`)
-				.then(res => res.json())
-				.then(data => {
-					if (data.disqualified) setDisqualified(true);
-					// Set persistent clue
-					if (data.currentClue) setCurrentClue(data.currentClue);
-					if (data.targetCoords) setTargetCoords(data.targetCoords);
-				})
-				.catch(err => console.error(err));
-		}
+		fetchTeamStatus();
 	}, [teamId]);
 
 	// Mouse parallax effect
@@ -278,8 +281,8 @@ const Scan = () => {
 							message: "Code Matches!",
 							secondaryMessage: result.nextClue || "Clue Restricted. Contact HQ."
 						});
-						// Update persistent clue
-						setCurrentClue(result.nextClue || "Proceed to extraction point.");
+						// Update persistent clue via server sync to ensure consistency
+						fetchTeamStatus();
 						setMessage(`Location Verified: ${userPlusCode}`);
 						playSuccessSound();
 						vibrateSuccess();
@@ -356,8 +359,8 @@ const Scan = () => {
 					animate={{ scale: 1, opacity: 1 }}
 					transition={{ type: "spring", stiffness: 200, damping: 10 }}
 				>
-					<h1 style={{ color: 'red', fontSize: '3rem' }}>DISQUALIFIED</h1>
-					<p style={{ color: 'white', fontSize: '1.2rem', margin: '20px 0' }}>
+					<h1 style={{ color: 'red', fontSize: 'min(3rem, 10vw)', overflowWrap: 'break-word' }}>DISQUALIFIED</h1>
+					<p style={{ color: 'white', fontSize: '1.2rem', margin: '20px 0', wordWrap: 'break-word', maxWidth: '100%' }}>
 						{banReason || "Your team has been disqualified by the admin."}
 						<br />
 						<span style={{ fontSize: '0.9em', color: '#ffaaaa' }}>Please report to the control desk.</span>

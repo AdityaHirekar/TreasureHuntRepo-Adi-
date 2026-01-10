@@ -125,7 +125,8 @@ const GameModal = ({ isOpen, onClose, type = 'SUCCESS', message, secondaryMessag
                                 fontSize: '1.1rem',
                                 lineHeight: '1.5',
                                 color: '#fff',
-                                fontWeight: 'bold'
+                                fontWeight: 'bold',
+                                overflowWrap: 'break-word'
                             }}>
                                 {message}
                             </p>
@@ -135,7 +136,8 @@ const GameModal = ({ isOpen, onClose, type = 'SUCCESS', message, secondaryMessag
                                     fontSize: '0.9rem',
                                     marginTop: '10px',
                                     borderTop: '1px solid rgba(255,255,255,0.1)',
-                                    paddingTop: '10px'
+                                    paddingTop: '10px',
+                                    overflowWrap: 'break-word'
                                 }}>
                                     {secondaryMessage}
                                 </p>
