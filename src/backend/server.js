@@ -239,18 +239,42 @@ app.post("/scan", async (req, res) => {
 app.get("/leaderboard", async (req, res) => {
 	try {
 		const { data: teams } = await supabase.from("teams").select("team_id, team_name");
-		const { data: scans } = await supabase.from("scans").select("team_id").eq("scan_result", "SUCCESS");
+		// Fetch all successful scans, including their timestamps
+		const { data: scans } = await supabase.from("scans").select("team_id, scan_time").eq("scan_result", "SUCCESS");
 
 		const scores = {};
-		scans.forEach(s => scores[s.team_id] = (scores[s.team_id] || 0) + 1);
+		const lastScanTimes = {};
+
+		scans.forEach(s => {
+			// Increment score
+			scores[s.team_id] = (scores[s.team_id] || 0) + 1;
+
+			// Track the latest scan time for tie-breaking
+			const scanTime = new Date(s.scan_time).getTime();
+			if (!lastScanTimes[s.team_id] || scanTime > lastScanTimes[s.team_id]) {
+				lastScanTimes[s.team_id] = scanTime;
+			}
+		});
 
 		const leaderboard = teams.map(t => ({
 			team_name: t.team_name,
-			score: scores[t.team_id] || 0
-		})).sort((a, b) => b.score - a.score);
+			score: scores[t.team_id] || 0,
+			last_scan_time: lastScanTimes[t.team_id] || 0
+		})).sort((a, b) => {
+			// Primary Sort: Score (Descending)
+			if (b.score !== a.score) {
+				return b.score - a.score;
+			}
+			// Secondary Sort: Time Taken (Ascending) - Earlier is better
+			// Only checking time if both have > 0 score, otherwise 0 time (started but nc) is not "better" 
+			// Actually, 0 time means no scans, so they should be last anyway due to score.
+			// But if score is tied (e.g. both have 5), smaller time is better.
+			return a.last_scan_time - b.last_scan_time;
+		});
 
 		res.json(leaderboard);
 	} catch (error) {
+		console.error("Leaderboard Error:", error);
 		res.status(500).json({ error: "Error fetching leaderboard" });
 	}
 });

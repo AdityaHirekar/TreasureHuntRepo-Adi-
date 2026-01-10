@@ -4,6 +4,7 @@ import Register from "./page/Register";
 import Admin from "./page/Admin";
 import Check from "./page/Check";
 import Status from "./page/Status";
+import Leaderboard from "./page/Leaderboard";
 import NotFound from "./page/NotFound";
 import ParticlesBackground from "./components/ParticlesBackground";
 
@@ -29,6 +30,7 @@ function App() {
 				<Route path="/admin" element={<ForceScanIfLoggedIn><Admin /></ForceScanIfLoggedIn>} />
 				<Route path="/check" element={<ForceScanIfLoggedIn><Check /></ForceScanIfLoggedIn>} />
 				<Route path="/status" element={<ForceScanIfLoggedIn><Status /></ForceScanIfLoggedIn>} />
+				<Route path="/leaderboard" element={<Leaderboard />} />
 				<Route path="*" element={<ForceScanIfLoggedIn><NotFound /></ForceScanIfLoggedIn>} />
 			</Routes>
 		</>
