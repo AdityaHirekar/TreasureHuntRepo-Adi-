@@ -24,7 +24,7 @@ const Leaderboard = () => {
 
     useEffect(() => {
         fetchLeaderboard();
-        const interval = setInterval(fetchLeaderboard, 10000); // Auto-refresh every 10s
+        const interval = setInterval(fetchLeaderboard, 3000); // Auto-refresh every 3s for live updates
         return () => clearInterval(interval);
     }, []);
 
@@ -40,7 +40,7 @@ const Leaderboard = () => {
                         initial={{ y: -20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                     >
-                        🏆 Global Leaderboard 🏆
+                        🏆 Leaderboard 🏆
                     </motion.h1>
 
                     {loading && <div className="loading-spinner">Loading rankings...</div>}
@@ -54,13 +54,18 @@ const Leaderboard = () => {
                                 <span>Locations</span>
                                 <span>Status</span>
                             </div>
+
                             {teams.map((team, index) => (
                                 <motion.div
-                                    key={index}
+                                    layout
+                                    key={team.team_id} // Key must be unique ID for layout animation
                                     className={`leaderboard-row ${index === 0 ? "first-place" : ""} ${index === 1 ? "second-place" : ""} ${index === 2 ? "third-place" : ""}`}
                                     initial={{ x: -50, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: index * 0.1 }}
+                                    transition={{
+                                        layout: { type: "spring", stiffness: 45, damping: 15 },
+                                        opacity: { duration: 0.2 }
+                                    }}
                                 >
                                     <span className="rank">
                                         {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`}

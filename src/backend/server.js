@@ -188,25 +188,73 @@ app.post("/scan", async (req, res) => {
 		}]);
 
 		// Check Win Condition: Have they visited 5 locations (excluding CLG)?
-		const { count: successCount, error: countError } = await supabase
+		const { data: teamScans, error: countError } = await supabase
 			.from("scans")
-			.select("*", { count: "exact", head: true })
+			.select("location_id, scan_time")
 			.eq("team_id", teamId)
 			.eq("scan_result", "SUCCESS")
 			.neq("location_id", "CLG");
 
 		if (countError) console.error("Count Error", countError);
 
+		const successCount = (teamScans?.length || 0);
+
 		// If this was the 5th one (or more), they are done.
-		if ((successCount || 0) >= 5) {
+		if (successCount >= 5) {
+
+			// --- RANKING CALCULATION ---
+			// 1. Fetch ALL successful scans for ALL teams (excluding CLG)
+			const { data: allScans } = await supabase
+				.from("scans")
+				.select("team_id, scan_time")
+				.eq("scan_result", "SUCCESS")
+				.neq("location_id", "CLG");
+
+			// 2. Group by team and find completion time for each
+			const teamCompletions = {}; // { teamId: timestamp }
+
+			allScans.forEach(s => {
+				if (!teamCompletions[s.team_id]) teamCompletions[s.team_id] = [];
+				teamCompletions[s.team_id].push(new Date(s.scan_time).getTime());
+			});
+
+			const finishedTeams = [];
+			for (const [tId, times] of Object.entries(teamCompletions)) {
+				if (times.length >= 5) {
+					// Sort times to find the 5th one
+					times.sort((a, b) => a - b);
+					const finishTime = times[4]; // 0-indexed, so 4 is 5th
+					finishedTeams.push({ teamId: tId, finishTime });
+				}
+			}
+
+			// 3. Sort finished teams by completion time
+			finishedTeams.sort((a, b) => a.finishTime - b.finishTime);
+
+			// 4. Find rank of current team
+			const myRank = finishedTeams.findIndex(t => t.teamId === teamId) + 1; // 1-based rank
+
 			await supabase.from("teams").update({ assigned_location: "COMPLETED" }).eq("id", team.id);
 
-			return res.status(200).json({
-				result: "SUCCESS",
-				message: "MISSION COMPLETE!",
-				nextLocation: "COMPLETED",
-				nextClue: "MISSION COMPLETE! Return to College immediately for debriefing."
-			});
+			console.log(`Team ${teamId} Finished. Rank: ${myRank}`);
+
+			if (myRank === 1) {
+				return res.status(200).json({
+					result: "WINNER",
+					message: "CHAMPION!",
+					rank: 1,
+					nextLocation: "COMPLETED",
+					nextClue: "CONGRATULATIONS! You are the first to finish! Proceed to the stage."
+				});
+			} else {
+				return res.status(200).json({
+					result: "RANK",
+					message: "MISSION COMPLETE",
+					rank: myRank,
+					nextLocation: "COMPLETED",
+					nextClue: `You finished #${myRank}! Return to base to claim your prize.`
+				});
+			}
 		}
 
 		// Next Location (Normal Loop)
@@ -217,7 +265,7 @@ app.post("/scan", async (req, res) => {
 		if (locations.length > 0) {
 			nextLocObj = locations[Math.floor(Math.random() * locations.length)];
 		} else {
-			// Fallback if no locations left (shouldn't happen with excluding CLG unless only 1 loc exists)
+			// Fallback if no locations left
 			nextLocObj = { location_code: "COMPLETED", location_hint: "No more locations. Return to Base." };
 		}
 

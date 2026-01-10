@@ -11,6 +11,24 @@ const modalStyles = {
         buttonColor: '#00ff88',
         title: 'Target Verified'
     },
+    WINNER: {
+        borderColor: '#ffd700',
+        boxShadow: '0 0 40px rgba(255, 215, 0, 0.5), inset 0 0 30px rgba(255, 215, 0, 0.2)',
+        background: 'rgba(20, 20, 0, 0.95)',
+        color: '#ffd700',
+        icon: '🏆',
+        buttonColor: '#ffd700',
+        title: 'CHAMPION'
+    },
+    RANK: {
+        borderColor: '#00bfff',
+        boxShadow: '0 0 30px rgba(0, 191, 255, 0.4), inset 0 0 20px rgba(0, 191, 255, 0.2)',
+        background: 'rgba(0, 10, 25, 0.9)',
+        color: '#00bfff',
+        icon: '🏅',
+        buttonColor: '#00bfff',
+        title: 'MISSION COMPLETE'
+    },
     FAILURE: {
         borderColor: '#ffaa00',
         boxShadow: '0 0 30px rgba(255, 170, 0, 0.3), inset 0 0 20px rgba(255, 170, 0, 0.1)',

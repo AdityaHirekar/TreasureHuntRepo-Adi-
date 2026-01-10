@@ -274,11 +274,11 @@ const Scan = () => {
 				const result = await response.json();
 
 				if (response.ok) {
-					if (result.result === "SUCCESS") {
+					if (result.result === "SUCCESS" || result.result === "WINNER" || result.result === "RANK") {
 						setModalState({
 							isOpen: true,
-							type: "SUCCESS",
-							message: "Code Matches!",
+							type: result.result === "WINNER" ? "WINNER" : result.result === "RANK" ? "RANK" : "SUCCESS",
+							message: result.message,
 							secondaryMessage: result.nextClue || "Clue Restricted. Contact HQ."
 						});
 						// Update persistent clue via server sync to ensure consistency
