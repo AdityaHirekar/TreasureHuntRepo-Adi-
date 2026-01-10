@@ -282,6 +282,7 @@ const Scan = () => {
 							secondaryMessage: result.nextClue || "Clue Restricted. Contact HQ."
 						});
 						// Update persistent clue via server sync to ensure consistency
+						if (result.nextClue) setCurrentClue(result.nextClue);
 						fetchTeamStatus();
 						setMessage(`Location Verified: ${userPlusCode}`);
 						playSuccessSound();
