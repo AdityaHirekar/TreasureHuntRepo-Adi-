@@ -7,6 +7,7 @@ import AnimatedPage from "../components/AnimatedPage";
 import { useToast } from "../components/ToastContext";
 import Spinner from "../components/Spinner";
 import { OpenLocationCode } from "open-location-code";
+import Leaderboard from "./Leaderboard";
 
 const Admin = () => {
 	const { addToast } = useToast();
@@ -315,12 +316,23 @@ const Admin = () => {
 						>
 							Locations
 						</motion.button>
+						<motion.button
+							className="scan-button"
+							onClick={() => setView('leaderboard')}
+							style={view === 'leaderboard' ? { border: '2px solid white' } : {}}
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
+						>
+							🏆 Leaderboard
+						</motion.button>
 					</div>
 
-					{loading ? <Spinner /> : (
+					{view === 'leaderboard' ? (
+						<Leaderboard isEmbedded={true} />
+					) : loading ? <Spinner /> : (
 						<div style={{
 							textAlign: 'left',
-							maxHeight: '400px',
+							maxHeight: '600px',
 							overflowY: 'auto',
 							width: '100%',
 							background: 'rgba(0,0,0,0.3)',
