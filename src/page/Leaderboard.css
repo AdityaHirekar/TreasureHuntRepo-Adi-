@@ -115,3 +115,43 @@
         font-size: 1.8rem;
     }
 }
+
+/* Embedded Leaderboard overrides */
+.leaderboard-embedded {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    padding: 0;
+    max-width: 100%;
+}
+
+.leaderboard-embedded .leaderboard-list {
+    gap: 0.5rem;
+}
+
+.leaderboard-embedded .leaderboard-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.5rem;
+}
+
+.leaderboard-embedded .leaderboard-row {
+    padding: 0.8rem 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Mobile tweak for embedded table */
+@media (max-width: 600px) {
+
+    .leaderboard-embedded .leaderboard-header,
+    .leaderboard-embedded .leaderboard-row {
+        /* Reduce gap for rank column, give more to team name */
+        grid-template-columns: 30px 1fr 60px 70px;
+        font-size: 0.75rem;
+        gap: 5px;
+    }
+
+    .leaderboard-embedded .rank {
+        font-size: 1rem;
+    }
+}
