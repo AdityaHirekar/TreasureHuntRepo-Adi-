@@ -40,7 +40,7 @@ const Leaderboard = () => {
                         initial={{ y: -20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                     >
-                        🏆 Leaderboard 🏆
+                        Leaderboard
                     </motion.h1>
 
                     {loading && <div className="loading-spinner">Loading rankings...</div>}
