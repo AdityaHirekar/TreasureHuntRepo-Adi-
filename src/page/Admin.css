@@ -14,7 +14,7 @@ body {
 	border: 1px solid var(--mv-glass-border);
 	border-radius: 20px;
 	padding: 40px;
-	max-width: 600px;
+	max-width: 900px;
 	width: 90%;
 	box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 	display: flex;
@@ -172,6 +172,13 @@ body {
 	justify-content: center;
 	flex-wrap: wrap;
 	/* Allow wrapping on small screens */
+}
+
+.admin-nav-buttons .scan-button {
+	width: auto;
+	min-width: 100px;
+	margin: 0;
+	flex: 0 1 auto;
 }
 
 /* Individual List Items (Teams, Scans, Locations) */
