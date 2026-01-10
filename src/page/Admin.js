@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { API_BASE_URL } from "../config";
 import "./Scan.css"; // Use the main theme
 import "./AdminLogin.css"; // Import login styles
+import "./Admin.css"; // Import admin specific styles
 import AnimatedPage from "../components/AnimatedPage";
 import { useToast } from "../components/ToastContext";
 import Spinner from "../components/Spinner";
