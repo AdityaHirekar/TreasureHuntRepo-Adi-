@@ -172,7 +172,6 @@ const Scan = () => {
 	const handleScanData = (data) => {
 		setScannedData(data);
 		setIsScannerOpen(false);
-		handleSendData(null, data); // Auto-submit
 	};
 
 	const handleError = (error) => {
@@ -461,9 +460,27 @@ const Scan = () => {
 										animate={{ scale: 1, opacity: 1 }}
 										exit={{ scale: 0.5, opacity: 0 }}
 									>
-										Scanned: {scannedData} <br />
-										{/* Auto-Submitting... No buttons needed */}
-										<p style={{ fontSize: '0.9em', marginTop: '10px' }}>Verifying Location...</p>
+										<p style={{ fontSize: '0.9em', marginTop: '10px' }}>Code Scanned: <strong style={{ color: 'var(--mv-primary)' }}>{scannedData}</strong></p>
+										<div style={{ marginTop: '15px' }}>
+											<motion.button
+												type="button"
+												onClick={openScanner}
+												style={{ fontSize: '0.8rem', marginRight: '10px' }}
+												whileHover={{ scale: 1.05 }}
+												whileTap={{ scale: 0.95 }}
+											>
+												Rescan
+											</motion.button>
+											<motion.button
+												type="submit"
+												className="action-button"
+												style={{ fontSize: '0.8rem', display: 'inline-block', width: 'auto' }}
+												whileHover={{ scale: 1.05 }}
+												whileTap={{ scale: 0.95 }}
+											>
+												Verify Location
+											</motion.button>
+										</div>
 									</motion.div>
 								) : (
 									<motion.button
