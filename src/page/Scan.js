@@ -172,6 +172,7 @@ const Scan = () => {
 	const handleScanData = (data) => {
 		setScannedData(data);
 		setIsScannerOpen(false);
+		handleSendData(null, data); // Auto-submit
 	};
 
 	const handleError = (error) => {
@@ -221,8 +222,9 @@ const Scan = () => {
 		}
 	};
 
-	const handleSendData = async (e) => {
-		e.preventDefault();
+	const handleSendData = async (e, dataOverride) => {
+		if (e) e.preventDefault();
+		const locCode = dataOverride || scannedData;
 		// setMessage("Processing..."); // Removed text based message
 		setLoading(true);
 
@@ -460,15 +462,8 @@ const Scan = () => {
 										exit={{ scale: 0.5, opacity: 0 }}
 									>
 										Scanned: {scannedData} <br />
-										<motion.button
-											type="button"
-											onClick={openScanner}
-											style={{ fontSize: '0.8rem', marginTop: '5px' }}
-											whileHover={{ scale: 1.05 }}
-											whileTap={{ scale: 0.95 }}
-										>
-											Rescan
-										</motion.button>
+										{/* Auto-Submitting... No buttons needed */}
+										<p style={{ fontSize: '0.9em', marginTop: '10px' }}>Verifying Location...</p>
 									</motion.div>
 								) : (
 									<motion.button
