@@ -461,24 +461,44 @@ const Scan = () => {
 										exit={{ scale: 0.5, opacity: 0 }}
 									>
 										<p style={{ fontSize: '0.9em', marginTop: '10px' }}>Code Scanned: <strong style={{ color: 'var(--mv-primary)' }}>{scannedData}</strong></p>
-										<div style={{ marginTop: '15px' }}>
+										<div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
 											<motion.button
 												type="button"
 												onClick={openScanner}
-												style={{ fontSize: '0.8rem', marginRight: '10px' }}
-												whileHover={{ scale: 1.05 }}
+												style={{
+													flex: 1,
+													background: 'rgba(255, 255, 255, 0.1)',
+													border: '1px solid rgba(255, 255, 255, 0.3)',
+													color: 'white',
+													padding: '12px 20px',
+													borderRadius: '12px',
+													fontSize: '0.9rem',
+													cursor: 'pointer',
+													backdropFilter: 'blur(5px)'
+												}}
+												whileHover={{ scale: 1.05, background: 'rgba(255, 255, 255, 0.2)' }}
 												whileTap={{ scale: 0.95 }}
 											>
 												Rescan
 											</motion.button>
 											<motion.button
 												type="submit"
-												className="action-button"
-												style={{ fontSize: '0.8rem', display: 'inline-block', width: 'auto' }}
-												whileHover={{ scale: 1.05 }}
+												style={{
+													flex: 1,
+													background: 'var(--mv-primary)',
+													border: 'none',
+													color: 'black',
+													padding: '12px 20px',
+													borderRadius: '12px',
+													fontSize: '0.9rem',
+													fontWeight: 'bold',
+													cursor: 'pointer',
+													boxShadow: '0 0 15px rgba(0, 217, 255, 0.4)'
+												}}
+												whileHover={{ scale: 1.05, boxShadow: '0 0 25px var(--mv-primary)' }}
 												whileTap={{ scale: 0.95 }}
 											>
-												Verify Location
+												Verify
 											</motion.button>
 										</div>
 									</motion.div>
