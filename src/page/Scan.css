@@ -70,7 +70,8 @@ input {
     font-size: 1.1rem;
     outline: none;
     text-align: center;
-    transition: all 0.3s ease;
+    /* transition: all 0.3s ease; */
+    /* Handled by Framer Motion */
 }
 
 input:focus {
@@ -88,7 +89,8 @@ button {
     /* Pill shape */
     font-size: 1.2rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* transition: all 0.3s ease; */
+    /* Handled by Framer Motion */
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -114,7 +116,7 @@ button.send-button {
 }
 
 button.send-button:hover {
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); Handled by Framer Motion */
     box-shadow: var(--mv-shadow-secondary);
     filter: brightness(1.2);
 }
@@ -191,32 +193,37 @@ button.close-button:hover {
 }
 
 @media screen and (max-width: 480px) {
+    .container {
+        width: 100%;
+        /* Adjust width for padding */
+        border-radius: 15px;
+        /* Keep rounded corners */
+        backdrop-filter: blur(10px);
+        /* Reduce blur but keep it */
+        background-color: rgba(0, 0, 0, 0.6);
+        /* Darker background for readability */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
     h1 {
-        font-size: 1.8rem;
-        letter-spacing: 2px;
+        font-size: 2rem;
         margin-bottom: 20px;
     }
 
-    .container {
-        padding: 20px;
-        border-radius: 15px;
-    }
-
-    label {
-        font-size: 1rem;
-    }
-
-    input {
-        margin: 5px 0 15px;
-    }
-
+    input,
     button {
-        padding: 12px;
-        margin: 10px 0;
+        width: 100%;
+        max-width: 100%;
+        font-size: 16px;
+        /* Prevent iOS zoom */
+        margin: 8px 0;
     }
 
     .modal-content {
         width: 95%;
+        max-height: 85vh;
         padding: 20px;
     }
 }

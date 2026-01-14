@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import QrReader from "react-qr-scanner";
 
 const QRScanner = ({ onScanData, onError, width = "80%", height = "80%" }) => {
-	const [data, setData] = useState("No result");
+	const [, setData] = useState("No result");
 
 	const handleScan = (result) => {
 		if (result) {

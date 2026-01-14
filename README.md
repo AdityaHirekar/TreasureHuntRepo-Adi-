@@ -1,70 +1,90 @@
-# Getting Started with Create React App
+# Treasure Hunt Game
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A geolocation-based Treasure Hunt application built with React, Node.js (Express), and Supabase. Players form teams, scan QR codes at real-world locations, solve clues, and race to finish the course.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+*   **Real-time Geolocation Checks:** Verifies player position against target coordinates.
+*   **QR Code Scanning:** Players scan codes to "check in" at locations.
+*   **Team Management:** Register teams and track progress.
+*   **Dynamic Clues:** Clues are served based on the team's current status.
+*   **Admin Dashboard:** Monitor teams, manage locations, and disqualify cheaters.
+*   **Leaderboard:** Live ranking of teams based on completion time and score.
 
-### `npm start`
+## 🛠 Technology Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+*   **Frontend:** React (Create React App), `react-router-dom`, `framer-motion` (animations).
+*   **Backend:** Node.js, Express.js.
+*   **Database:** Supabase (PostgreSQL).
+*   **Libraries:** `jsqr`, `react-qr-reader` (QR scanning), `open-location-code`.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## ⚙️ Setup and Installation
 
-### `npm test`
+### Prerequisites
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+*   Node.js (v14 or higher)
+*   npm
+*   A Supabase project
 
-### `npm run build`
+### Environment Variables
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Create a `.env` file in the root directory (or `src/backend/.env` for the server if running separately, though the project root is common for monorepo-lite setups).
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+**Frontend (.env)**
+```env
+REACT_APP_API_URL=http://localhost:5050
+REACT_APP_SUPABASE_URL=your_supabase_url
+REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**Backend (src/backend/.env)**
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_service_role_key
+ADMIN_PASSWORD=your_admin_password
+```
 
-### `npm run eject`
+### Installation
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/treasure-hunt.git
+    cd treasure-hunt
+    ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🏃 Usage
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Running the Application
 
-## Learn More
+1.  **Start the Backend Server:**
+    The backend allows the frontend to interact with the database securely.
+    ```bash
+    node src/backend/server.js
+    ```
+    *Server runs on port 5050 by default.*
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+2.  **Start the React Frontend:**
+    In a new terminal:
+    ```bash
+    npm start
+    ```
+    *App runs on http://localhost:3000.*
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### How to Play
 
-### Code Splitting
+1.  **Register:** Admin registers a team on the default page or `/register`.
+2.  **Start:** The team receives their first Clue.
+3.  **Hunt:** Go to the location described by the clue.
+4.  **Scan:** Find the QR code at the location and scan it using the app.
+5.  **Progress:** If correct, get the next clue. If wrong, get a warning (3 strikes = Disqualified).
+6.  **Win:** Complete 5 locations to finish.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 📚 Documentation
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+*   **[Backend API](BACKEND.md):** Detailed API documentation.
+*   **[Contributing](CONTRIBUTING.md):** Guidelines for developers.
