@@ -1,0 +1,229 @@
+/* Scan.css */
+
+/* Body styles are handled in index.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background-color: var(--mv-glass);
+    border: 1px solid var(--mv-glass-border);
+    border-radius: 25px;
+    padding: 40px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    width: 90%;
+    max-width: 800px;
+}
+
+@font-face {
+    font-family: 'Glitch-font';
+    src: url('../../public/Glitch-font.otf') format('truetype');
+}
+
+h1 {
+    font-size: 4rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    margin-bottom: 30px;
+    text-align: center;
+    letter-spacing: 8px;
+    color: #ffffff;
+    /* Changed to white for better visibility */
+    text-shadow:
+        0 0 10px rgba(0, 0, 0, 0.8),
+        /* Dark shadow for contrast */
+        0 0 20px var(--mv-primary),
+        0 0 30px var(--mv-primary),
+        0 0 40px rgba(0, 217, 255, 0.5);
+    font-family: var(--font-heading);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+label {
+    font-size: 1.2rem;
+    margin: 15px 0 5px;
+    color: var(--mv-text);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: var(--font-body);
+    font-weight: 600;
+}
+
+input {
+    width: 100%;
+    max-width: 500px;
+    padding: 15px;
+    margin: 10px 0 20px;
+    border: 2px solid var(--mv-glass-border);
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: var(--mv-text);
+    font-size: 1.1rem;
+    outline: none;
+    text-align: center;
+    /* transition: all 0.3s ease; */
+    /* Handled by Framer Motion */
+}
+
+input:focus {
+    border-color: var(--mv-primary);
+    box-shadow: var(--mv-shadow-primary);
+}
+
+button {
+    width: 100%;
+    max-width: 500px;
+    padding: 15px;
+    margin: 15px 0;
+    border: none;
+    border-radius: 50px;
+    /* Pill shape */
+    font-size: 1.2rem;
+    cursor: pointer;
+    /* transition: all 0.3s ease; */
+    /* Handled by Framer Motion */
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+button.scan-button {
+    background: transparent;
+    border: 2px solid var(--mv-primary);
+    color: var(--mv-primary);
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+}
+
+button.scan-button:hover {
+    background: var(--mv-primary);
+    color: #000;
+    box-shadow: var(--mv-shadow-primary);
+}
+
+button.send-button {
+    background: linear-gradient(45deg, var(--mv-secondary), #9d00ff);
+    color: white;
+    box-shadow: 0 4px 15px rgba(188, 19, 254, 0.4);
+}
+
+button.send-button:hover {
+    /* transform: translateY(-2px); Handled by Framer Motion */
+    box-shadow: var(--mv-shadow-secondary);
+    filter: brightness(1.2);
+}
+
+.success-message {
+    color: var(--mv-primary);
+    font-weight: bold;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    text-shadow: 0 0 10px var(--mv-primary);
+}
+
+/* Modal Styling */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #1a1a2e;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    width: 90%;
+    max-width: 500px;
+    border: 1px solid var(--mv-primary);
+    box-shadow: var(--mv-shadow-primary);
+}
+
+button.close-button {
+    background-color: transparent;
+    border: 1px solid #ff4d4d;
+    color: #ff4d4d;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    width: auto;
+}
+
+button.close-button:hover {
+    background-color: #ff4d4d;
+    color: white;
+    box-shadow: 0 0 10px #ff4d4d;
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+    .container {
+        width: 95%;
+        padding: 25px;
+        margin: 10px;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+        letter-spacing: 3px;
+    }
+
+    input,
+    button {
+        max-width: 100%;
+        font-size: 1rem;
+        padding: 12px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .container {
+        width: 100%;
+        /* Adjust width for padding */
+        border-radius: 15px;
+        /* Keep rounded corners */
+        backdrop-filter: blur(10px);
+        /* Reduce blur but keep it */
+        background-color: rgba(0, 0, 0, 0.6);
+        /* Darker background for readability */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+
+    input,
+    button {
+        width: 100%;
+        max-width: 100%;
+        font-size: 16px;
+        /* Prevent iOS zoom */
+        margin: 8px 0;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-height: 85vh;
+        padding: 20px;
+    }
+}

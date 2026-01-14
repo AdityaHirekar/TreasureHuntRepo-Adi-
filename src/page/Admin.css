@@ -1,0 +1,252 @@
+/* Reset handled globally */
+
+/* General styling handled globally */
+body {
+	/* Ensure body background from index.css is visible */
+	background-color: transparent;
+}
+
+/* Main container */
+.admin-container {
+	background-color: var(--mv-glass);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	border: 1px solid var(--mv-glass-border);
+	border-radius: 20px;
+	padding: 40px;
+	max-width: 900px;
+	width: 90%;
+	box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 50px auto;
+}
+
+/* Heading */
+.admin-heading {
+	font-size: 3rem;
+	color: #ffffff;
+	/* Changed to white for better visibility */
+	margin-bottom: 30px;
+	text-align: center;
+	text-transform: uppercase;
+	letter-spacing: 5px;
+	text-shadow:
+		0 0 10px rgba(0, 0, 0, 0.9),
+		0 0 20px var(--mv-secondary);
+	font-family: var(--font-heading);
+	font-weight: 400;
+}
+
+/* Form styling */
+.admin-form {
+	width: 100%;
+}
+
+.form-group {
+	margin-top: 20px;
+	width: 100%;
+}
+
+.form-label {
+	font-weight: 600;
+	color: #ffffff;
+	/* Changed to white */
+	font-size: 1.1rem;
+	display: block;
+	margin-bottom: 8px;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+}
+
+.form-input {
+	width: 100%;
+	padding: 12px;
+	background-color: rgba(0, 0, 0, 0.5);
+	/* Darker background */
+	border: 1px solid var(--mv-glass-border);
+	border-radius: 8px;
+	font-size: 1rem;
+	color: #ffffff;
+	/* Ensure input text is white */
+	transition: all 0.3s ease;
+}
+
+.form-input:focus {
+	border-color: var(--mv-secondary);
+	box-shadow: 0 0 10px rgba(188, 19, 254, 0.3);
+	outline: none;
+}
+
+/* Button styling */
+.admin-button {
+	width: 100%;
+	padding: 15px;
+	background: linear-gradient(90deg, var(--mv-primary), #00a8ff);
+	color: #000;
+	font-size: 1.1rem;
+	font-weight: 800;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	margin-top: 30px;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+.admin-button:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--mv-shadow-primary);
+	filter: brightness(1.1);
+}
+
+/* Locations list */
+.location-list {
+	list-style-type: none;
+	padding: 0;
+	width: 100%;
+	margin-top: 20px;
+}
+
+.location-item {
+	background-color: rgba(255, 255, 255, 0.05);
+	padding: 12px;
+	margin: 8px 0;
+	border-radius: 6px;
+	text-align: center;
+	color: var(--mv-text);
+	font-weight: 500;
+	border: 1px solid transparent;
+	transition: all 0.2s ease;
+}
+
+.location-item:hover {
+	border-color: var(--mv-primary);
+	background-color: rgba(0, 243, 255, 0.1);
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+	.admin-container {
+		width: 95%;
+		padding: 25px;
+		margin: 20px auto;
+	}
+
+	.admin-heading {
+		font-size: 2rem;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.admin-container {
+		padding: 20px;
+	}
+
+	.admin-heading {
+		font-size: 1.8rem;
+		margin-bottom: 20px;
+	}
+
+	.form-input {
+		padding: 10px;
+		font-size: 0.9rem;
+	}
+
+	.admin-button {
+		padding: 12px;
+		font-size: 1rem;
+	}
+}
+
+/* Mobile Alignment Fixes */
+
+/* Navigation Buttons Container */
+.admin-nav-buttons {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 20px;
+	justify-content: center;
+	flex-wrap: wrap;
+	/* Allow wrapping on small screens */
+}
+
+.admin-nav-buttons .scan-button {
+	width: auto;
+	min-width: 100px;
+	margin: 0;
+	flex: 0 1 auto;
+}
+
+/* Individual List Items (Teams, Scans, Locations) */
+.admin-list-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	/* Base styles already present in JS are now cleaner, but we keep flex here */
+}
+
+/* Action Buttons */
+.action-button {
+	border-radius: 4px;
+	cursor: pointer;
+	border: none;
+	font-weight: bold;
+	transition: all 0.2s ease;
+}
+
+.disconnect-btn {
+	background: #ff4444;
+	color: white;
+}
+
+.connect-btn {
+	background: #00cc00;
+	color: white;
+}
+
+.set-location-btn {
+	background: #00ccff;
+}
+
+/* Mobile Responsive Adjustments */
+@media screen and (max-width: 768px) {
+	.admin-nav-buttons {
+		gap: 5px;
+	}
+
+	.scan-button {
+		font-size: 0.9rem;
+		padding: 8px 12px;
+		flex: 1 1 auto;
+		/* Grow and shrink, basis auto */
+		min-width: 80px;
+		text-align: center;
+	}
+
+	.admin-list-item {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+	}
+
+	.admin-list-item>div {
+		width: 100%;
+	}
+
+	/* When stacked, make the button full width or aligned better */
+	.admin-list-item>button {
+		width: 100% !important;
+		margin-top: 10px !important;
+		padding: 10px !important;
+	}
+
+	.action-button {
+		width: 100% !important;
+		text-align: center;
+		padding: 10px !important;
+	}
+}
