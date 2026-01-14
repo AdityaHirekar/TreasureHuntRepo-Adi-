@@ -25,7 +25,9 @@ const Admin = () => {
 	// Edit Location State
 	const [editingTeam, setEditingTeam] = useState(null);
 	const [locationOptions, setLocationOptions] = useState([]);
+
 	const [newLocationCode, setNewLocationCode] = useState("");
+	const [expandedTeam, setExpandedTeam] = useState(null); // ID of team expanded to show members
 
 	// Auto-fetch on load/view switch (only if authenticated)
 	useEffect(() => {
@@ -212,6 +214,30 @@ const Admin = () => {
 		}
 	};
 
+	const handleDeleteTeam = async (teamId) => {
+		if (!window.confirm(`Are you sure you want to DELETE Team ${teamId}? This cannot be undone.`)) return;
+		try {
+			const res = await fetch(`${API_BASE_URL}/admin/team/${teamId}`, {
+				method: "DELETE",
+				headers: getHeaders()
+			});
+			if (res.ok) {
+				addToast(`Team ${teamId} deleted.`, 'success');
+				fetchTeams();
+			} else {
+				const err = await res.json();
+				addToast("Delete Failed: " + err.error, 'error');
+			}
+		} catch (e) {
+			addToast("Network Error", 'error');
+		}
+	};
+
+	const toggleMembers = (teamId) => {
+		if (expandedTeam === teamId) setExpandedTeam(null);
+		else setExpandedTeam(teamId);
+	};
+
 	if (!token) {
 		return (
 			<AnimatedPage>
@@ -359,6 +385,25 @@ const Admin = () => {
 										<div>
 											<strong style={{ color: '#00ccff', fontSize: '1.2em' }}>{t.team_name}</strong>
 											<span style={{ fontSize: '0.9em', opacity: 0.7, marginLeft: '10px' }}>({t.team_id})</span>
+
+											<button
+												onClick={() => toggleMembers(t.team_id)}
+												className="outline-btn"
+												style={{ marginLeft: '10px' }}
+											>
+												{expandedTeam === t.team_id ? "Hide Members" : "Show Members"}
+											</button>
+
+											{expandedTeam === t.team_id && (
+												<div style={{ margin: '10px 0', padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '5px' }}>
+													<strong>Members:</strong>
+													<ul style={{ margin: '5px 0 0 20px', padding: 0 }}>
+														{Array.isArray(t.members) ? t.members.map((m, idx) => (
+															<li key={idx} style={{ color: '#ddd' }}>{m}</li>
+														)) : <li style={{ color: '#888' }}>{t.members || "No Data"}</li>}
+													</ul>
+												</div>
+											)}
 											<br />
 											<div style={{ fontSize: '0.9em', marginTop: '5px', opacity: 0.9 }}>
 												{editingTeam === t.team_id ? (
@@ -372,58 +417,60 @@ const Admin = () => {
 																<option key={l.location_code} value={l.location_code}>{l.location_code}</option>
 															))}
 														</select>
-														<button onClick={() => saveLocation(t.team_id)} style={{ background: 'transparent', border: '1px solid #00ff88', color: '#00ff88', borderRadius: '4px', cursor: 'pointer', padding: '2px 6px', fontSize: '0.8em' }}>💾</button>
-														<button onClick={() => setEditingTeam(null)} style={{ background: 'transparent', border: '1px solid #ff4444', color: '#ff4444', borderRadius: '4px', cursor: 'pointer', padding: '2px 6px', fontSize: '0.8em' }}>❌</button>
+														<button onClick={() => saveLocation(t.team_id)} className="save-btn">Save</button>
+														<button onClick={() => setEditingTeam(null)} className="cancel-btn">Cancel</button>
 													</div>
 												) : (
 													<>
 														Loc: <strong style={{ color: '#ffcc00' }}>{t.assigned_location}</strong>
 														<button
 															onClick={() => startEditing(t)}
-															style={{
-																background: 'transparent',
-																border: 'none',
-																color: '#ccc',
-																marginLeft: '5px',
-																cursor: 'pointer',
-																fontSize: '1em',
-																padding: '0 5px'
-															}}
+															className="edit-btn"
 															title="Edit Location"
 														>
-															✏️
+															Edit
 														</button> |
 													</>
 												)}
 												Device: {t.registered_device_id ? <span style={{ color: '#99ff99' }}>Bound</span> : 'Unbound'} |
-												Status: {t.disqualified ? <span style={{ color: '#ff4444' }}>DISQUALIFIED</span> : 'Active'}
+												Status: {t.disqualified ? <span style={{ color: '#ff4444' }}>DISQUALIFIED</span> : (t.assigned_location === 'COMPLETED' ? <span style={{ color: '#00ff00' }}>FINISHED</span> : 'Active')}
 											</div>
 										</div>
-										{!t.disqualified ? (
+										<div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+											{!t.disqualified ? (
+												<motion.button
+													onClick={() => handleDisqualify(t.team_id, true)}
+													className="action-button disconnect-btn"
+													style={{
+														fontSize: '0.8rem', padding: '5px 10px', width: 'auto', margin: 0
+													}}
+													whileHover={{ scale: 1.1 }}
+													whileTap={{ scale: 0.9 }}
+												>
+													Disqualify
+												</motion.button>
+											) : (
+												<motion.button
+													onClick={() => handleDisqualify(t.team_id, false)}
+													className="action-button connect-btn"
+													style={{
+														fontSize: '0.8rem', padding: '5px 10px', width: 'auto', margin: 0
+													}}
+													whileHover={{ scale: 1.1 }}
+													whileTap={{ scale: 0.9 }}
+												>
+													Re-qualify
+												</motion.button>
+											)}
 											<motion.button
-												onClick={() => handleDisqualify(t.team_id, true)}
-												className="action-button disconnect-btn"
-												style={{
-													fontSize: '0.8rem', padding: '5px 10px', width: 'auto', margin: 0
-												}}
-												whileHover={{ scale: 1.1 }}
-												whileTap={{ scale: 0.9 }}
+												onClick={() => handleDeleteTeam(t.team_id)}
+												className="action-button delete-btn"
+												whileHover={{ scale: 1.05 }}
+												whileTap={{ scale: 0.95 }}
 											>
-												Disqualify
+												Delete Team
 											</motion.button>
-										) : (
-											<motion.button
-												onClick={() => handleDisqualify(t.team_id, false)}
-												className="action-button connect-btn"
-												style={{
-													fontSize: '0.8rem', padding: '5px 10px', width: 'auto', margin: 0
-												}}
-												whileHover={{ scale: 1.1 }}
-												whileTap={{ scale: 0.9 }}
-											>
-												Re-qualify
-											</motion.button>
-										)}
+										</div>
 									</motion.div>
 								))}
 
@@ -442,7 +489,7 @@ const Admin = () => {
 										}}
 										whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.15)', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
 									>
-										<strong style={{ color: '#ffaa00' }}>{s.team_id}</strong> @ {s.location_id} <br />
+										<strong style={{ color: '#ffaa00' }}>{s.teams?.team_name || s.team_id}</strong> <span style={{ fontSize: '0.8em', opacity: 0.7 }}>({s.team_id})</span> @ {s.location_id} <br />
 										Result: <span style={{ fontWeight: 'bold', color: s.scan_result === 'SUCCESS' ? '#99ff99' : '#ff4444' }}>{s.scan_result}</span>
 										{s.admin_note && <span style={{ fontStyle: 'italic', marginLeft: '5px' }}>({s.admin_note})</span>} <br />
 										<small style={{ opacity: 0.6 }}>{new Date(s.scan_time).toLocaleString()}</small>

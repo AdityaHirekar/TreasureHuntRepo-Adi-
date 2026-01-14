@@ -24,7 +24,7 @@ function App() {
 		<>
 			<ParticlesBackground />
 			<Routes>
-				<Route path="/" element={<ForceScanIfLoggedIn><Navigate to="/regi" /></ForceScanIfLoggedIn>} />
+				<Route path="/" element={<ForceScanIfLoggedIn><Navigate to="/scan" /></ForceScanIfLoggedIn>} />
 				<Route path="/regi" element={<ForceScanIfLoggedIn><Register /></ForceScanIfLoggedIn>} />
 				<Route path="/scan" element={<Scan />} />
 				<Route path="/admin" element={<ForceScanIfLoggedIn><Admin /></ForceScanIfLoggedIn>} />

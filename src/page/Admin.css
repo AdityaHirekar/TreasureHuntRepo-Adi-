@@ -250,3 +250,94 @@ body {
 		padding: 10px !important;
 	}
 }
+
+/* New Button Styles for Theme Consistency */
+.outline-btn {
+	background: transparent;
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	color: rgba(255, 255, 255, 0.7);
+	padding: 5px 10px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 0.8rem;
+	transition: all 0.2s ease;
+}
+
+.outline-btn:hover {
+	border-color: var(--mv-primary);
+	color: white;
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.edit-btn {
+	background: transparent;
+	border: 1px solid var(--mv-secondary);
+	color: var(--mv-secondary);
+	padding: 5px 10px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 0.8rem;
+	transition: all 0.2s ease;
+    margin-left: 10px;
+}
+
+.edit-btn:hover {
+	background: var(--mv-secondary);
+	color: black;
+	box-shadow: 0 0 10px var(--mv-secondary);
+}
+
+.save-btn {
+    background: transparent;
+    border: 1px solid #00ff88;
+    color: #00ff88;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    margin-right: 5px;
+}
+
+.save-btn:hover {
+    background: #00ff88;
+    color: black;
+    box-shadow: 0 0 10px #00ff88;
+}
+
+.cancel-btn {
+    background: transparent;
+    border: 1px solid #ff4444;
+    color: #ff4444;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+    background: #ff4444;
+    color: white;
+}
+
+.delete-btn {
+    background: transparent;
+    border: 1px solid #ff4444;
+    color: #ff4444;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.delete-btn:hover {
+    background: #ff4444;
+    color: white;
+    box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+}

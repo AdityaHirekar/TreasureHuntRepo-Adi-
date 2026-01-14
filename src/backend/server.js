@@ -1,4 +1,5 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -48,6 +49,7 @@ async function isDeviceBanned(deviceId) {
 // For this task: We'll assume the client sends an 'x-admin-secret' or we check a valid Supabase Session in the header.
 // Prompt said: "Protect admin routes with Supabase JWT verification."
 // Authentication Middleware for Admin
+// Authentication Middleware forAdmin
 const adminAuth = (req, res, next) => {
 	const authHeader = req.headers['authorization'];
 	const token = authHeader && authHeader.split(' ')[1];
@@ -60,9 +62,38 @@ const adminAuth = (req, res, next) => {
 	}
 };
 
+// Time Limit Helper (2 Hours from CLG Scan)
+async function checkTimeLimit(teamId) {
+	try {
+		// Find the SUCCESS scan for CLG
+		const { data: clgScan } = await supabase
+			.from("scans")
+			.select("scan_time")
+			.eq("team_id", teamId)
+			.eq("location_id", "CLG")
+			.eq("scan_result", "SUCCESS")
+			.single();
+
+		if (clgScan) {
+			const startTime = new Date(clgScan.scan_time).getTime();
+			const now = Date.now();
+			const TWO_HOURS = 2 * 60 * 60 * 1000;
+
+			if (now - startTime > TWO_HOURS) {
+				// Time Exceeded - Disqualify
+				await supabase.from("teams").update({ disqualified: true }).eq("team_id", teamId);
+				return { expired: true, reason: "Time Limit Exceeded (2 Hours)" };
+			}
+		}
+	} catch (e) {
+		console.error("Time Check Error:", e);
+	}
+	return { expired: false };
+}
+
 // --- Endpoints ---
 
-// 0. Auth Login
+// 0. Auth Login (Admin)
 app.post("/auth/login", (req, res) => {
 	const { password } = req.body;
 	// Secure password check using env variable or fallback
@@ -71,6 +102,28 @@ app.post("/auth/login", (req, res) => {
 		res.json({ token: "secret-admin-token-123" });
 	} else {
 		res.status(401).json({ error: "Invalid Password" });
+	}
+});
+
+// 0.5. Get Team ID by Name (Player Login)
+app.post("/api/get-team-id", async (req, res) => {
+	const { teamName } = req.body;
+	if (!teamName) return res.status(400).json({ error: "Team Name required" });
+
+	try {
+		const trimmedName = teamName.trim();
+		const { data: team, error } = await supabase
+			.from("teams")
+			.select("team_id, team_name")
+			.ilike("team_name", trimmedName)
+			.maybeSingle();
+
+		if (error) throw error;
+		if (!team) return res.status(404).json({ error: "Team not found. Please register first." });
+
+		res.json({ teamId: team.team_id, teamName: team.team_name });
+	} catch (err) {
+		res.status(500).json({ error: err.message });
 	}
 });
 
@@ -95,6 +148,17 @@ app.post("/register", async (req, res) => {
 	}
 
 	try {
+		// Check for duplicate team name (Case Insensitive)
+		const trimmedName = teamName.trim();
+		const { data: existingTeams } = await supabase
+			.from("teams")
+			.select("team_name")
+			.ilike("team_name", trimmedName);
+
+		if (existingTeams && existingTeams.length > 0) {
+			return res.status(400).json({ error: "Team name already taken (Case Insensitive)." });
+		}
+
 		const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
 		const teamId = `TEAM-${suffix}`;
 
@@ -130,6 +194,11 @@ app.post("/scan", async (req, res) => {
 
 		const { data: team } = await supabase.from("teams").select("*").eq("team_id", teamId).single();
 		if (!team) return res.status(404).json({ error: "Team not found" });
+
+		// Check Time Limit
+		const timeCheck = await checkTimeLimit(teamId);
+		if (timeCheck.expired) return res.status(403).json({ error: "Disqualified: Time Limit Exceeded" });
+
 		if (team.disqualified) return res.status(403).json({ error: "Team Disqualified" });
 
 		// Device Binding Logic
@@ -143,7 +212,9 @@ app.post("/scan", async (req, res) => {
 		}
 
 		// Location Check
-		if (team.assigned_location !== locationId) {
+		const TEST_MODE = false; // Set to false to enable strict location sequence enforcement
+
+		if (!TEST_MODE && team.assigned_location !== locationId) {
 			// Count previous wrong scans (scan_result = "FAIL")
 			const { count: wrongCount, error: countError } = await supabase
 				.from("scans")
@@ -155,33 +226,19 @@ app.post("/scan", async (req, res) => {
 
 			const currentStrike = (wrongCount || 0) + 1;
 
-			if (currentStrike >= 3) {
-				// 3rd Strike: Disqualify
-				await supabase.from("teams").update({ disqualified: true }).eq("team_id", teamId);
-
-				await supabase.from("scans").insert([{
-					team_id: teamId,
-					location_id: locationId,
-					device_id: deviceId,
-					client_lat: lat,
-					client_lng: lng,
-					scan_result: "REJECTED",
-					admin_note: "Disqualified: 3rd Wrong Location"
-				}]);
-				return res.status(403).json({ error: "DISQUALIFIED: You have scanned the wrong location 3 times." });
-			} else {
-				// Warning
-				await supabase.from("scans").insert([{
-					team_id: teamId,
-					location_id: locationId,
-					device_id: deviceId,
-					client_lat: lat,
-					client_lng: lng,
-					scan_result: "FAIL",
-					admin_note: "Wrong Location"
-				}]);
-				return res.json({ result: "FAIL", message: `Wrong Location. Warning ${currentStrike}/3` });
-			}
+			// Just Warning, No Disqualification
+			await supabase.from("scans").insert([{
+				team_id: teamId,
+				location_id: locationId,
+				device_id: deviceId,
+				client_lat: lat,
+				client_lng: lng,
+				scan_result: "FAIL",
+				admin_note: "Wrong Location"
+			}]);
+			return res.json({ result: "FAIL", message: `Wrong Location. Try again. (Attempt #${currentStrike})` });
+		} else if (TEST_MODE && team.assigned_location !== locationId) {
+			console.log(`[TEST MODE] Allowed scan for mismatched location. Assigned: ${team.assigned_location}, Scanned: ${locationId}`);
 		}
 
 
@@ -202,14 +259,13 @@ app.post("/scan", async (req, res) => {
 			// Center is fine for 25m threshold if the code is precise enough (10+ digits).
 
 			if (distance > MAX_DISTANCE) {
-				// AUTO-DISQUALIFY
-				await supabase.from("teams").update({ disqualified: true }).eq("team_id", teamId);
-
+				// WARN ONLY (No Disqualification)
 				await supabase.from("scans").insert([{
 					team_id: teamId, location_id: locationId, device_id: deviceId, client_lat: lat, client_lng: lng,
-					scan_result: "REJECTED", admin_note: `GPS Cheating? (${Math.round(distance)}m > 25m) - DISQUALIFIED`, distance_check_meters: distance
+					scan_result: "FAIL", admin_note: `GPS Warning (${Math.round(distance)}m > 25m)`, distance_check_meters: distance
 				}]);
-				return res.status(403).json({ error: `CHEATING DETECTED. You are ${Math.round(distance)}m away (Max 25m). You have been DISQUALIFIED.` });
+				// Return FAIL with a message to move closer
+				return res.json({ result: "FAIL", message: `Too far away! You are ${Math.round(distance)}m away (Max 25m). Move closer.` });
 			}
 		} else {
 			// No Coordinates found for this ID
@@ -365,8 +421,13 @@ app.get("/leaderboard", async (req, res) => {
 app.get("/team-status/:teamId", async (req, res) => {
 	const { teamId } = req.params;
 	try {
+		// Check Time Limit First
+		const timeStatus = await checkTimeLimit(teamId);
+
 		const { data: team } = await supabase.from("teams").select("disqualified, assigned_location").eq("team_id", teamId).single();
 		if (!team) return res.status(404).json({ error: "Team not found" });
+
+		if (timeStatus.expired) team.disqualified = true; // Ensure returned status is correct immediately
 
 		// Fetch hint for the assigned location
 		let currentHint = "Unknown Objective";
@@ -405,8 +466,19 @@ app.use("/admin", adminAuth); // Protect all /admin routes
 
 app.get("/admin/teams", async (req, res) => {
 	try {
-		const { data: teams, error } = await supabase.from("teams").select("*");
+		const { data: teams, error } = await supabase.from("teams").select("*").order("team_name", { ascending: true });
 		if (error) throw error;
+
+		// Refresh Time Limits
+		for (const team of teams) {
+			if (!team.disqualified && team.assigned_location !== "COMPLETED") {
+				const status = await checkTimeLimit(team.team_id);
+				if (status.expired) {
+					team.disqualified = true; // Reflect in response
+				}
+			}
+		}
+
 		res.json(teams);
 	} catch (err) {
 		console.error("Admin Teams Error:", err);
@@ -474,6 +546,22 @@ app.put("/admin/team/location", async (req, res) => {
 		res.json({ message: `Team ${teamId} moved to ${locationCode}` });
 	} catch (err) {
 		console.error("Update Team Loc Error:", err);
+		res.status(500).json({ error: err.message });
+	}
+});
+
+app.delete("/admin/team/:teamId", async (req, res) => {
+	const { teamId } = req.params;
+	try {
+		// First delete scans associated with the team
+		await supabase.from("scans").delete().eq("team_id", teamId);
+
+		// Then delete the team
+		const { error } = await supabase.from("teams").delete().eq("team_id", teamId);
+		if (error) throw error;
+		res.json({ message: `Team ${teamId} deleted` });
+	} catch (err) {
+		console.error("Delete Team Error:", err);
 		res.status(500).json({ error: err.message });
 	}
 });

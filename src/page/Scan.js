@@ -345,10 +345,37 @@ const Scan = () => {
 		}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
 	};
 
-	const handleTeamIdChange = (e) => {
-		setTeamId(e.target.value);
-		localStorage.setItem("teamId", e.target.value);
-	}
+	// const handleTeamIdChange = (e) => {
+	// 	setTeamId(e.target.value);
+	// 	localStorage.setItem("teamId", e.target.value);
+	// }
+
+	const [inputTeamName, setInputTeamName] = useState("");
+
+	const handleLoginSubmit = async (e) => {
+		e.preventDefault();
+		setMessage("");
+
+		try {
+			const response = await fetch(`${API_BASE_URL}/api/get-team-id`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ teamName: inputTeamName })
+			});
+			const data = await response.json();
+
+			if (response.ok) {
+				setTeamId(data.teamId);
+				localStorage.setItem("teamId", data.teamId);
+				localStorage.setItem("teamName", data.teamName);
+				window.location.reload(); // Force reload to ensure UI updates correctly
+			} else {
+				setMessage("Login Error: " + (data.error || "Team not found"));
+			}
+		} catch (err) {
+			setMessage("Network Error: Could not verify team name.");
+		}
+	};
 
 	if (disqualified) {
 		return (
@@ -388,77 +415,92 @@ const Scan = () => {
 					initial="hidden"
 					animate="visible"
 				>
-					<form onSubmit={handleSendData}>
-						<AnimatePresence mode="wait">
-							{scannedData ? (
-								<motion.div
-									key="success"
-									className="success-message"
-									initial={{ scale: 0.5, opacity: 0 }}
-									animate={{ scale: 1, opacity: 1 }}
-									exit={{ scale: 0.5, opacity: 0 }}
-								>
-									Scanned: {scannedData} <br />
+					{!teamId ? (
+						<form onSubmit={handleLoginSubmit}>
+							<AnimatePresence mode="wait">
+								{/* Scan Button Hidden during Login Phase */}
+							</AnimatePresence>
+							<br />
+							<motion.label
+								variants={itemVariants}
+								onClick={handleSecretTap}
+								style={{ cursor: 'pointer', userSelect: 'none' }}
+							>
+								Enter Team Name:
+							</motion.label>
+							<motion.input
+								variants={itemVariants}
+								type="text"
+								value={inputTeamName}
+								onChange={(e) => setInputTeamName(e.target.value)}
+								required
+								placeholder="e.g. The Hunters"
+								whileFocus={{ scale: 1.02, borderColor: "var(--mv-primary)", boxShadow: "0 0 15px var(--mv-primary)" }}
+							/>
+							<br />
+							<motion.button
+								className="send-button"
+								type="submit"
+								variants={itemVariants}
+								whileHover={{ scale: 1.05, filter: "brightness(1.2)" }}
+								whileTap={{ scale: 0.95 }}
+							>
+								Start Hunt
+							</motion.button>
+						</form>
+					) : (
+						<form onSubmit={handleSendData}>
+							<AnimatePresence mode="wait">
+								{scannedData ? (
+									<motion.div
+										key="success"
+										className="success-message"
+										initial={{ scale: 0.5, opacity: 0 }}
+										animate={{ scale: 1, opacity: 1 }}
+										exit={{ scale: 0.5, opacity: 0 }}
+									>
+										Scanned: {scannedData} <br />
+										<motion.button
+											type="button"
+											onClick={openScanner}
+											style={{ fontSize: '0.8rem', marginTop: '5px' }}
+											whileHover={{ scale: 1.05 }}
+											whileTap={{ scale: 0.95 }}
+										>
+											Rescan
+										</motion.button>
+									</motion.div>
+								) : (
 									<motion.button
+										key="scan-btn"
+										className="scan-button"
 										type="button"
 										onClick={openScanner}
-										style={{ fontSize: '0.8rem', marginTop: '5px' }}
-										whileHover={{ scale: 1.05 }}
+										variants={itemVariants}
+										animate={{
+											boxShadow: ["0 0 10px rgba(0, 217, 255, 0.2)", "0 0 25px rgba(0, 217, 255, 0.6)", "0 0 10px rgba(0, 217, 255, 0.2)"],
+											scale: [1, 1.02, 1]
+										}}
+										transition={{
+											boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+											scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+										}}
+										whileHover={{ scale: 1.05, boxShadow: "0 0 35px var(--mv-primary)" }}
 										whileTap={{ scale: 0.95 }}
 									>
-										Rescan
+										Scan QR
 									</motion.button>
-								</motion.div>
-							) : (
-								<motion.button
-									key="scan-btn"
-									className="scan-button"
-									type="button"
-									onClick={openScanner}
-									variants={itemVariants}
-									animate={{
-										boxShadow: ["0 0 10px rgba(0, 217, 255, 0.2)", "0 0 25px rgba(0, 217, 255, 0.6)", "0 0 10px rgba(0, 217, 255, 0.2)"],
-										scale: [1, 1.02, 1]
-									}}
-									transition={{
-										boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-										scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-									}}
-									whileHover={{ scale: 1.05, boxShadow: "0 0 35px var(--mv-primary)" }}
-									whileTap={{ scale: 0.95 }}
-								>
-									Scan QR
-								</motion.button>
-							)}
-						</AnimatePresence>
-						<br />
-						<motion.label
-							variants={itemVariants}
-							onClick={handleSecretTap}
-							style={{ cursor: 'pointer', userSelect: 'none' }}
-						>
-							Team ID:
-						</motion.label>
-						<motion.input
-							variants={itemVariants}
-							type="text"
-							value={teamId}
-							onChange={handleTeamIdChange}
-							required
-							placeholder="TEAM-XXXX"
-							whileFocus={{ scale: 1.02, borderColor: "var(--mv-primary)", boxShadow: "0 0 15px var(--mv-primary)" }}
-						/>
-						<br />
-						<motion.button
-							className="send-button"
-							type="submit"
-							variants={itemVariants}
-							whileHover={{ scale: 1.05, filter: "brightness(1.2)" }}
-							whileTap={{ scale: 0.95 }}
-						>
-							Submit
-						</motion.button>
-					</form>
+								)}
+							</AnimatePresence>
+							<br />
+							<div
+								style={{ marginTop: '20px', fontSize: '0.9em', color: '#aaa', userSelect: 'none', cursor: 'default' }}
+								onClick={handleSecretTap}
+							>
+								Playing as: <strong style={{ color: 'var(--mv-primary)' }}>{localStorage.getItem("teamName") || teamId}</strong>
+							</div>
+						</form>
+					)}
 					{message && (
 						<motion.p
 							style={{ marginTop: '20px', fontWeight: 'bold' }}

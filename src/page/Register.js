@@ -38,8 +38,8 @@ const Register = () => {
 
             if (response.ok) {
                 setSuccessData(data);
-                // Optionally auto-save Team ID to local storage for convenience
-                localStorage.setItem("teamId", data.teamId);
+                // Volunteer Mode: Do NOT save to localStorage so the volunteer PC stays neutral
+                // localStorage.setItem("teamId", data.teamId);
             } else {
                 setError("Server Error: " + (data.error || "Registration failed."));
             }
@@ -56,12 +56,20 @@ const Register = () => {
                     <div className="container">
                         <div className="success-message">
                             <h3>Team Registered!</h3>
-                            <p><strong>Team ID:</strong> {successData.teamId}</p>
+                            <p><strong>Team Name:</strong> {successData.teamName || teamName}</p>
                             <p><strong>Assigned Location (Start):</strong> {successData.assignedLocation}</p>
                             <p className="note">Save your Team ID! You will need it to scan.</p>
                             <br />
-                            <button className="scan-button" onClick={() => navigate("/scan")}>
-                                Go to Scanner
+                            <button
+                                className="scan-button"
+                                onClick={() => {
+                                    setSuccessData(null);
+                                    setTeamName("");
+                                    setMembers(["", "", "", ""]);
+                                    setError("");
+                                }}
+                            >
+                                Register New Team
                             </button>
                         </div>
                     </div>
