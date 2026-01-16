@@ -358,8 +358,13 @@ app.post("/scan", async (req, res) => {
 		}
 
 		// Next Location (Normal Loop)
-		// Exclude CLG from the random pool
-		const { data: locations } = await supabase.from("location").select("location_code, location_hint").neq("location_code", locationId).neq("location_code", "CLG");
+		// Exclude CLG, COMPLETED, DUMMY, and current location from the random pool
+		const { data: locations } = await supabase.from("location")
+			.select("location_code, location_hint")
+			.neq("location_code", locationId)
+			.neq("location_code", "CLG")
+			.neq("location_code", "COMPLETED")
+			.neq("location_code", "DUMMY");
 
 		let nextLocObj;
 		if (locations.length > 0) {
