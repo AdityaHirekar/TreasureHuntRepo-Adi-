@@ -710,6 +710,20 @@ app.post("/admin/set-progress", async (req, res) => {
 			}]);
 		}
 
+		// 0.1 Ensure nextLocation exists (if provided, e.g. "DUMMY")
+		if (nextLocation) {
+			const { data: nextLocData } = await supabase.from("location").select("location_code").eq("location_code", nextLocation).single();
+			if (!nextLocData) {
+				await supabase.from("location").insert([{
+					location_code: nextLocation,
+					location_name: "Test Location",
+					location_hint: "Scan the test QR to finish.",
+					latitude: 0,
+					longitude: 0
+				}]);
+			}
+		}
+
 		// 1. Reset: Delete Clean
 		await supabase.from("scans").delete().eq("team_id", teamId);
 
