@@ -113,7 +113,10 @@ const Admin = () => {
 		try {
 			const res = await fetch(`${API_BASE_URL}/admin/locations`, { headers: getHeaders() });
 			if (res.ok) {
-				setData(await res.json());
+				const allLocs = await res.json();
+				// Filter out internal system locations
+				const visibleLocs = allLocs.filter(l => l.location_code !== "COMPLETED" && l.location_code !== "DUMMY");
+				setData(visibleLocs);
 			} else {
 				const err = await res.json();
 				addToast("Error: " + (err.error || res.status), 'error');
