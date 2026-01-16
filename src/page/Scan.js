@@ -548,13 +548,13 @@ const Scan = () => {
 
 					<GameModal
 						isOpen={disqualified}
-						title="⚠️ DISQUALIFIED ⚠️"
-						message={banReason || "You have been disqualified by the admin. Please report to the control desk."}
-						type="error"
+						title="DISQUALIFIED"
+						message={banReason || "Your team has been disqualified by the admin. Please report to the control desk."}
+						type="DISQUALIFIED"
 						onClose={() => {
 							setDisqualified(false);
 							disqualificationAckRef.current = true; // Mark as acknowledged
-						}} // Allow closing to maybe look at other things or logout
+						}}
 					/>
 
 					{/* Modal for Results/Errors */}
