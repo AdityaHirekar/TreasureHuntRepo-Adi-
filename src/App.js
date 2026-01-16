@@ -4,7 +4,6 @@ import Register from "./page/Register";
 import Admin from "./page/Admin";
 import Check from "./page/Check";
 import Status from "./page/Status";
-import Leaderboard from "./page/Leaderboard";
 import NotFound from "./page/NotFound";
 import ParticlesBackground from "./components/ParticlesBackground";
 

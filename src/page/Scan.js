@@ -253,7 +253,7 @@ const Scan = () => {
 
 	const handleSendData = async (e, dataOverride) => {
 		if (e) e.preventDefault();
-		const locCode = dataOverride || scannedData;
+		// const locCode = dataOverride || scannedData; 
 		// setMessage("Processing..."); // Removed text based message
 		setLoading(true);
 

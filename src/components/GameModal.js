@@ -125,8 +125,6 @@ const GameModal = ({ isOpen, onClose, type = 'SUCCESS', message, secondaryMessag
                                 color: style.color,
                                 textTransform: 'uppercase',
                                 letterSpacing: '2px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '2px',
                                 fontSize: 'clamp(1.2rem, 5vw, 1.8rem)', // Responsive font size
                                 wordBreak: 'break-word', // Fix alignment issues
                                 marginBottom: '15px'

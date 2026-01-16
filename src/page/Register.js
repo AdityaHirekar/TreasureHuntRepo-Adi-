@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { API_BASE_URL } from "../config";
 import "./Scan.css"; // Reuse existing styles for consistency
 import AnimatedPage from "../components/AnimatedPage";
 
 const Register = () => {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const [teamName, setTeamName] = useState("");
     const [members, setMembers] = useState(["", "", "", ""]);
     const [error, setError] = useState("");
