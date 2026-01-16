@@ -392,10 +392,7 @@ app.get("/leaderboard", async (req, res) => {
 
 		const leaderboard = teams.map(t => {
 			const teamId = t.team_id;
-			const stats = scores[teamId] || { score: 0, start: 0, end: 0, scans: [] };
-
-			// Calculate Duration if finished (score >= 5 excluding CLG, wait, score count below includes CLG?)
-			// Let's refine the map first
+			// Stats will be hydrated in the next loop
 
 			return {
 				team_name: t.team_name,
