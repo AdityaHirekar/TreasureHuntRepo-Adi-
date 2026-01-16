@@ -39,13 +39,13 @@ const modalStyles = {
         title: 'Target Mismatch'
     },
     DISQUALIFIED: {
-        borderColor: '#ff0000',
-        boxShadow: '0 0 40px rgba(255, 0, 0, 0.5), inset 0 0 30px rgba(255, 0, 0, 0.2)',
-        background: 'rgba(30, 0, 0, 0.95)',
-        color: '#ff0000',
-        icon: '🚫',
-        buttonColor: '#ff0000',
-        title: 'ACCESS DENIED'
+        borderColor: '#ff3333',
+        boxShadow: '0 0 50px rgba(255, 0, 0, 0.6), inset 0 0 30px rgba(255, 0, 0, 0.3)',
+        background: 'rgba(20, 0, 0, 0.98)',
+        color: '#ff3333',
+        icon: '⛔',
+        buttonColor: '#ff3333',
+        title: 'DISQUALIFIED'
     },
     ERROR: {
         borderColor: '#00ccff',
@@ -103,6 +103,11 @@ const GameModal = ({ isOpen, onClose, type = 'SUCCESS', message, secondaryMessag
                             fontFamily: "'Orbitron', sans-serif"
                         }}
                     >
+                        {/* Close Icon (Top Right) */}
+                        <div style={{ position: 'absolute', top: '15px', right: '15px', cursor: 'pointer', padding: '5px' }} onClick={onClose}>
+                            <span style={{ fontSize: '1.5rem', color: style.color }}>×</span>
+                        </div>
+
                         <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1, rotate: 360 }}
@@ -120,7 +125,10 @@ const GameModal = ({ isOpen, onClose, type = 'SUCCESS', message, secondaryMessag
                                 color: style.color,
                                 textTransform: 'uppercase',
                                 letterSpacing: '2px',
-                                fontSize: '1.8rem',
+                                textTransform: 'uppercase',
+                                letterSpacing: '2px',
+                                fontSize: 'clamp(1.2rem, 5vw, 1.8rem)', // Responsive font size
+                                wordBreak: 'break-word', // Fix alignment issues
                                 marginBottom: '15px'
                             }}
                         >
@@ -179,7 +187,7 @@ const GameModal = ({ isOpen, onClose, type = 'SUCCESS', message, secondaryMessag
                                 marginTop: '10px'
                             }}
                         >
-                            {type === 'SUCCESS' ? 'CONTINUE MISSION' : 'ACKNOWLEDGE'}
+                            {type === 'SUCCESS' ? 'CONTINUE MISSION' : 'CLOSE'}
                         </motion.button>
                     </motion.div>
                 </motion.div>
