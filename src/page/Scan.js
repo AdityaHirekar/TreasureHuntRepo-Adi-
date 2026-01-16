@@ -45,7 +45,6 @@ const scanButtonVariants = {
 		}
 	}
 };
-
 const Scan = () => {
 	const ENABLE_COMPASS = false; // Set to true to enable Proximity Compass
 	const [scannedData, setScannedData] = useState(null);
