@@ -218,7 +218,9 @@ const Scan = () => {
 	}, []);
 
 	const handleScanData = (data) => {
-		setScannedData(data);
+		// Trim whitespace from scanned code to avoid false negatives
+		const cleanData = data ? data.trim() : "";
+		setScannedData(cleanData);
 		setIsScannerOpen(false);
 	};
 

@@ -180,10 +180,13 @@ app.post("/register", async (req, res) => {
 
 // 3. Scan
 app.post("/scan", async (req, res) => {
-	const { teamId, locationId, deviceId, lat, lng } = req.body;
+	let { teamId, locationId, deviceId, lat, lng } = req.body;
 	if (!teamId || !locationId || !deviceId) {
 		return res.status(400).json({ error: "Missing data" });
 	}
+
+	// Sanitize Inputs
+	locationId = locationId.trim().toUpperCase();
 
 	try {
 		// Anti-Cheat: Banned Device check
@@ -225,6 +228,8 @@ app.post("/scan", async (req, res) => {
 			if (countError) console.error("Info: Could not count wrong scans", countError);
 
 			const currentStrike = (wrongCount || 0) + 1;
+
+			console.log(`[SCAN FAIL] Team: ${teamId}, Expected: '${team.assigned_location}', Received: '${locationId}'`);
 
 			// Just Warning, No Disqualification
 			await supabase.from("scans").insert([{
