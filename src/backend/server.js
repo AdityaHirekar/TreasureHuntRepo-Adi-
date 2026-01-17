@@ -77,12 +77,12 @@ async function checkTimeLimit(teamId) {
 		if (clgScan) {
 			const startTime = new Date(clgScan.scan_time).getTime();
 			const now = Date.now();
-			const TWO_HOURS = 24 * 60 * 60 * 1000; // Extended to 24 Hours for event/testing
+			const TWO_HOURS = 2 * 60 * 60 * 1000; // 2 Hours Real Time Limit
 
 			if (now - startTime > TWO_HOURS) {
-				// Time Exceeded
-				// await supabase.from("teams").update({ disqualified: true }).eq("team_id", teamId); // Disable auto-ban for now
-				return { expired: true, reason: "Time Limit Exceeded (24 Hours)" };
+				// Time Exceeded - Deactivate Team (Preserve Data)
+				await supabase.from("teams").update({ disqualified: true }).eq("team_id", teamId);
+				return { expired: true, reason: "Time Limit Exceeded (2 Hours)" };
 			}
 		}
 	} catch (e) {
